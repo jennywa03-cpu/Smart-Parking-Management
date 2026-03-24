@@ -5609,7 +5609,7 @@ body.sidebar-collapsed .sidebar-icon {
 }
 
 .sidebar-meta-item[data-icon='pulse']::after {
-  content: '•';
+  content: 'ï¿½';
   font-size: 13px;
   left: 17px;
 }
@@ -7757,4 +7757,20 @@ body[data-page='occupancy'] .slot-tile.status-maintenance::before {
     right: 12px;
     width: min(320px, calc(100vw - 20px));
   }
+}
+
+
+/* Profile password toggle alignment fix */
+.input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrap > input {
+  width: 100%;
+}
+
+body[data-page='profile'] .input-wrap > input[type='password'],
+body[data-page='profile'] .input-wrap > input[type='text'] {
+  padding-right: 46px !important;
 }
