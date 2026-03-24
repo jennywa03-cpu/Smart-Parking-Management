@@ -1,9 +1,16 @@
 ﻿# Frontend (Dev)
 
 ## Run locally
+From the repo root you can run both services together:
 ```bash
 npm install
+npm run setup
 npm run dev
+```
+
+If you only want the frontend server:
+```bash
+npm run dev:frontend
 ```
 
 Default URL:

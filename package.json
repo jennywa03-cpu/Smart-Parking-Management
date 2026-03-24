@@ -2,8 +2,17 @@
   "name": "smart-parking-management-root",
   "private": true,
   "scripts": {
+    "setup": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "smoke": "npm --prefix backend run smoke",
+    "email:test": "npm --prefix backend run email:test",
     "railway:build": "npm --prefix backend ci --omit=dev",
     "railway:bootstrap": "npm --prefix backend run railway:bootstrap",
     "railway:start": "npm --prefix backend start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

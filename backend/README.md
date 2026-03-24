@@ -5,11 +5,14 @@ Node.js + MySQL backend for the Smart Parking Management System.
 ## Local Setup
 1. Copy `.env.example` to `.env`.
 2. Create `Park_db` and import `../database/schema.sql` followed by `../database/seed.sql`.
-3. Install dependencies and start the server.
+3. From the repo root run `npm install` once, then `npm run setup`.
+4. Start only the API with `npm run dev:backend` from the repo root, or use `npm run dev` at the repo root to run both frontend and backend together.
 
 ```bash
+cd ..
 npm install
-npm run dev
+npm run setup
+npm run dev:backend
 ```
 
 ## Railway Notes

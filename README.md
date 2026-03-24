@@ -20,26 +20,28 @@ mysql -u root -p Park_db < database/schema.sql
 mysql -u root -p Park_db < database/seed.sql
 ```
 
-### 2. Backend
+### 2. Local app setup
 ```bash
-cd backend
+copy backend\.env.example backend\.env
 npm install
-copy .env.example .env
+npm run setup
+```
+
+### 3. Run frontend and backend together
+```bash
 npm run dev
 ```
 
-Default API URL:
-- `http://localhost:4000`
+Default local URLs:
+- Frontend: `http://localhost:5500`
+- Backend: `http://localhost:4000`
 
-### 3. Frontend
+### 4. Useful local commands
 ```bash
-cd frontend
-npm install
-npm run dev
+npm run dev:backend
+npm run dev:frontend
+npm run smoke
 ```
-
-Default frontend URL:
-- `http://localhost:5500`
 
 ## Deployment Admin Bootstrap
 - Set `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, and `ADMIN_SEED_PASSWORD` in your local `backend/.env`.
@@ -49,10 +51,12 @@ Default frontend URL:
 
 ## Recommended Local Run Order
 1. Start MySQL in XAMPP.
-2. Start the backend from `backend/`.
-3. Start the frontend from `frontend/`.
-4. Open `http://localhost:5500`.
-5. Sign in with the admin credentials configured in `backend/.env`, then change the password immediately on first successful login.
+2. Copy `backend/.env.example` to `backend/.env` if you have not done it yet.
+3. Run `npm install` once at the repo root.
+4. Run `npm run setup` once to install backend and frontend packages.
+5. Run `npm run dev` from the repo root.
+6. Open `http://localhost:5500`.
+7. Sign in with the admin credentials configured in `backend/.env`, then change the password immediately on first successful login.
 
 ## Railway Deployment
 
