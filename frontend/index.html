@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Login</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="login" class="auth-hero">
+    <div class="auth-overlay"></div>
+
+    <main class="auth-hero-shell">
+      <section class="hero-left">
+        <div class="hero-kicker">Smart Parking Management</div>
+        <h1 class="hero-title">Welcome <span>Back</span></h1>
+      </section>
+
+      <section class="hero-right">
+        <div class="hero-card">
+          <h2 class="hero-form-title">Sign in</h2>
+          <form id="loginForm" class="hero-form">
+            <label for="loginEmail">Email Address</label>
+            <input id="loginEmail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required />
+
+            <label for="loginPassword">Password</label>
+            <div class="input-group">
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+              <button
+                type="button"
+                class="toggle-visibility"
+                data-target="loginPassword"
+                aria-label="Show password"
+              >
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.3 21.3 0 0 1 5.17-6.26"></path>
+                  <path d="M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47"></path>
+                  <path d="M1 1l22 22"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="hero-options">
+              <label class="hero-checkbox">
+                <input type="checkbox" name="remember" />
+                <span>Remember me</span>
+              </label>
+            </div>
+
+            <button class="hero-button" type="submit">Sign in</button>
+          </form>
+
+          <div class="hero-links">
+            <a href="forgot-password.html">Lost your password?</a>
+          </div>
+          <div class="hero-links">
+            <a href="register.html">Register</a>
+          </div>
+          <div id="loginMessage" class="helper"></div>
+          <div class="hero-terms">
+            By clicking on "Sign in" you agree to Terms of Service | Privacy Policy
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
+
+

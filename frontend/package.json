@@ -1,0 +1,14 @@
+{
+  "name": "park-management-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the Smart Parking Management System",
+  "private": true,
+  "scripts": {
+    "dev": "http-server . -p 5500 -c-1 -d false -o index.html",
+    "start": "http-server . -p 5500 -c-1 -d false -o index.html"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.58.2"
+  }
+}

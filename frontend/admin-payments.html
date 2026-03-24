@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Payments</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin-payments" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Secure workspace" data-shell-page-label="Payments" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link active" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero payments-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Finance Desk</div>
+              <h1 class="ops-hero-title">Track every transaction, exception, and reconciliation point.</h1>
+              <p class="ops-hero-text">Review paid, pending, failed, and refunded records from a cleaner operational finance view.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#paymentsTableBody">View transactions</a>
+                <a class="btn-muted" href="#exportPaymentsCsvBtn">Export CSV</a>
+                <a class="btn-muted" href="#viewRefundsBtn">Refund queue</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>View</span><strong>Daily transaction log</strong></div>
+                <div class="ops-badge"><span>Controls</span><strong>Mark paid or refund</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card admin-inline-note-strip">
+            <div class="status">Workflow</div>
+            <p class="admin-inline-note-copy">Keep the ledger in focus, use inline actions for exceptions, and export only after you have narrowed the exact slice you want to review.</p>
+          </section>
+
+          <div class="ops-shell-grid ops-shell-grid-wide admin-workspace-grid">
+            <section class="card ops-table-card admin-table-card">
+              <div class="driver-card-header">
+                <div>
+                  <div class="status">Daily Transaction Log</div>
+                  <h2 class="title">Payment monitoring interface</h2>
+                  <p class="subtitle">Filter first, then use the inline actions for status correction, confirmation, or refunds.</p>
+                </div>
+                <button class="btn-muted" id="loadPaymentsBtn" type="button">Load payments</button>
+              </div>
+              <div class="grid admin-filter-inline-grid">
+                <div>
+                  <label for="paymentStatusFilter">Filter by status</label>
+                  <select id="paymentStatusFilter">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-shell">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Time</th>
+                      <th>Driver</th>
+                      <th>Booking</th>
+                      <th>Amount</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="paymentsTableBody"></tbody>
+                </table>
+              </div>
+              <div id="paymentsMessage" class="helper"></div>
+            </section>
+
+            <section class="card ops-notes-card admin-actions-card">
+              <div class="status">Export & Reconciliation</div>
+              <h2 class="title">Payment actions</h2>
+              <div class="compact-metric-grid finance-metric-grid">
+                <div class="compact-metric">
+                  <span>Paid today</span>
+                  <strong id="paymentTotalToday">KES 0</strong>
+                </div>
+                <div class="compact-metric">
+                  <span>Cash cleared</span>
+                  <strong id="paymentCashTotal">KES 0</strong>
+                </div>
+                <div class="compact-metric">
+                  <span>Mobile cleared</span>
+                  <strong id="paymentMobileTotal">KES 0</strong>
+                </div>
+                <div class="compact-metric">
+                  <span>Pending value</span>
+                  <strong id="paymentPendingTotal">KES 0</strong>
+                </div>
+              </div>
+              <div class="ops-note-list">
+                <button class="ops-note action-card-button" id="exportPaymentsCsvBtn" type="button">
+                  <strong>Export transaction log</strong>
+                  <span>Download a CSV snapshot for offline review.</span>
+                </button>
+                <button class="ops-note action-card-button" id="exportPaymentsPdfBtn" type="button">
+                  <strong>Export PDF</strong>
+                  <span>Generate a print-ready payment summary.</span>
+                </button>
+                <button class="ops-note action-card-button" id="viewRefundsBtn" type="button">
+                  <strong>View refunds & disputes</strong>
+                  <span>Jump directly to refunded items for follow-up.</span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

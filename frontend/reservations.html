@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Reservations</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="reservations" data-role="attendant" data-shell-kicker="Smart Parking Management" data-shell-title="Attendant Console" data-shell-status="Arrival queue" data-shell-page-label="Reservations" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Attendant</span><span class="sidebar-subtitle">Operations desk</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="attendant.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link active" href="reservations.html"><span class="sidebar-icon">&#128197;</span><span class="sidebar-text">Reservations</span></a>
+          <a class="sidebar-link" href="occupancy.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Occupancy</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card ops-hero reservations-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Reservation Desk</div>
+              <h1 class="ops-hero-title">Verify bookings quickly and keep the arrival queue moving.</h1>
+              <p class="ops-hero-text">Search by vehicle, confirm the reservation, and send drivers straight to the right space from one lighter gate-side workspace.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#reservationFilterInput">Find reservation</a>
+                <a class="btn-muted" href="occupancy.html">View occupancy</a>
+                <a class="btn-muted" href="attendant.html">Back to dashboard</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Focus</span><strong>Arrival validation</strong></div>
+                <div class="ops-badge"><span>Best action</span><strong>Verify before entry</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <div class="ops-shell-grid reservations-shell-grid">
+            <section class="card ops-filter-card reservations-filter-card">
+              <div class="status">Queue Control</div>
+              <h2 class="title">Find active reservations</h2>
+              <p class="subtitle">Keep the queue summary, search, and next-step reminder in one compact panel.</p>
+              <div class="attendant-inline-summary reservation-summary-inline" id="reservationQueueSummary">
+                <div class="title">Loading reservation queue...</div>
+                <div class="subtitle">The current live arrival queue will be summarized here after reservations load.</div>
+              </div>
+              <div class="grid reservation-filter-grid">
+                <div>
+                  <label for="reservationFilterInput">Filter by vehicle number</label>
+                  <input id="reservationFilterInput" type="text" placeholder="KBA 123A" />
+                </div>
+                <button class="btn-muted" id="filterReservationsBtn" type="button">Filter</button>
+              </div>
+              <div class="helper reservations-helper-copy">When the queue is busy, verify by vehicle first so you do not confirm the wrong booking.</div>
+              <div id="reservationsMessage" class="helper"></div>
+            </section>
+
+            <section class="card ops-table-card reservations-table-card">
+              <div class="driver-card-header">
+                <div>
+                  <div class="status">Active Reservations</div>
+                  <h2 class="title">Upcoming and current bookings</h2>
+                  <p class="subtitle">Use the verify action only after checking the driver and plate at the gate.</p>
+                </div>
+              </div>
+              <div class="table-shell">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Driver</th>
+                      <th>Schedule</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reservationsTableBody"></tbody>
+                </table>
+              </div>
+              <div class="helper attendant-grid-helper">Verify only once, then move back to the dashboard for entry logging if the driver is already at the gate.</div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

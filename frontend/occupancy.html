@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Occupancy</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="occupancy" data-role="attendant" data-shell-kicker="Smart Parking Management" data-shell-title="Attendant Console" data-shell-status="Lot visibility" data-shell-page-label="Occupancy" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Attendant</span><span class="sidebar-subtitle">Operations desk</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="attendant.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="reservations.html"><span class="sidebar-icon">&#128197;</span><span class="sidebar-text">Reservations</span></a>
+          <a class="sidebar-link active" href="occupancy.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Occupancy</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card ops-hero occupancy-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Live Occupancy</div>
+              <h1 class="ops-hero-title">See every slot status at a glance before you assign the next car.</h1>
+              <p class="ops-hero-text">Use one cleaner live map to spot available spaces, reserved bays, occupied zones, and maintenance blocks instantly.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#refreshOccupancyBtn">Refresh occupancy</a>
+                <a class="btn-muted" href="reservations.html">Check reservations</a>
+                <a class="btn-muted" href="attendant.html">Back to dashboard</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>View</span><strong>Gate-side monitor</strong></div>
+                <div class="ops-badge"><span>Refresh</span><strong>Manual live update</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <div class="reports-overview-grid occupancy-overview-grid" id="occupancyInsights"></div>
+
+          <section class="card ops-visual-card occupancy-command-card">
+            <div class="driver-card-header occupancy-card-header">
+              <div>
+                <div class="status">Lot Map</div>
+                <h2 class="title">Live occupancy status</h2>
+                <p class="subtitle">Refresh the map, read the current assignment guidance, and work from one focused monitor.</p>
+              </div>
+              <button class="btn-muted" id="refreshOccupancyBtn" type="button">Refresh occupancy</button>
+            </div>
+            <div class="attendant-inline-summary occupancy-summary-inline" id="occupancyActionSummary">
+              <div class="title">Loading live assignment guidance...</div>
+              <div class="subtitle">We will summarize the best next lot action here once occupancy data loads.</div>
+            </div>
+            <div id="occupancyGrid" class="slot-grid ops-slot-grid parking-lot-board"></div>
+            <div class="slot-legend">
+              <div class="legend-item"><span class="legend-dot available"></span>Available</div>
+              <div class="legend-item"><span class="legend-dot booked"></span>Reserved</div>
+              <div class="legend-item"><span class="legend-dot occupied"></span>Occupied</div>
+              <div class="legend-item"><span class="legend-dot maintenance"></span>Maintenance</div>
+            </div>
+            <div class="occupancy-inline-guide">
+              <span><strong>Available</strong> ready for walk-ins or fresh assignments.</span>
+              <span><strong>Reserved</strong> protect for the verified booking.</span>
+              <span><strong>Occupied</strong> vehicle is already inside the lot.</span>
+              <span><strong>Maintenance</strong> keep out of rotation until cleared.</span>
+            </div>
+            <div id="occupancyMessage" class="helper"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

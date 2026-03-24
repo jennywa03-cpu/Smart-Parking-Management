@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Users</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin-users" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Secure workspace" data-shell-page-label="User Management" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link active" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero users-hero">
+            <div class="ops-hero-copy">
+              <div class="status">User Administration</div>
+              <h1 class="ops-hero-title">Create staff accounts, manage roles, and keep access under control.</h1>
+              <p class="ops-hero-text">A cleaner workspace for onboarding attendants, activating admins, and keeping driver accounts organized.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#createUserForm">Create user</a>
+                <a class="btn-muted" href="#updateUserForm">Update access</a>
+                <a class="btn-muted" href="#usersList">Review users</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Access</span><strong>Role-based control</strong></div>
+                <div class="ops-badge"><span>Actions</span><strong>Create and update users</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card admin-inline-note-strip">
+            <div class="status">Workflow</div>
+            <p class="admin-inline-note-copy">Use the list as the review surface, then load one account into the update form only when a role or status decision is needed.</p>
+          </section>
+
+          <div class="ops-shell-grid ops-shell-grid-wide admin-workspace-grid">
+            <section class="card ops-table-card admin-table-card">
+              <div class="driver-card-header">
+                <div>
+                  <div class="status">Users</div>
+                  <h2 class="title">System users</h2>
+                  <p class="subtitle">Click any user row to load it into the update panel.</p>
+                </div>
+                <button class="btn-muted" id="loadUsersBtn" type="button">Load users</button>
+              </div>
+              <div class="table-shell">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersList"></tbody>
+                </table>
+              </div>
+              <div id="usersMessage" class="helper"></div>
+            </section>
+
+            <div class="ops-stack admin-form-stack">
+              <section class="card ops-form-card">
+                <div class="status">Create User</div>
+                <h2 class="title">Add staff or drivers</h2>
+                <form id="createUserForm" class="grid">
+                  <div>
+                    <label for="newUserName">Full name</label>
+                    <input id="newUserName" name="name" type="text" autocomplete="name" required />
+                  </div>
+                  <div>
+                    <label for="newUserEmail">Email</label>
+                    <input id="newUserEmail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required />
+                  </div>
+                  <div>
+                    <label for="newUserRole">Role</label>
+                    <select id="newUserRole" name="user_type">
+                      <option value="driver">Driver</option>
+                      <option value="attendant">Attendant</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="newUserPassword">Temporary password</label>
+                    <div class="input-group">
+                      <input id="newUserPassword" name="password" type="password" autocomplete="new-password" required />
+                      <button type="button" class="toggle-visibility" data-target="newUserPassword" aria-label="Show password">
+                        <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.3 21.3 0 0 1 5.17-6.26"></path>
+                          <path d="M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47"></path>
+                          <path d="M1 1l22 22"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="helper">Password must be at least 8 characters and include uppercase, lowercase, number, and special character.</div>
+                  </div>
+                  <button class="btn-primary" type="submit">Create user</button>
+                </form>
+                <div id="usersCreateMessage" class="helper"></div>
+              </section>
+
+              <section class="card ops-form-card">
+                <div class="status">Update User</div>
+                <h2 class="title">Activate, deactivate, or change role</h2>
+                <form id="updateUserForm" class="grid">
+                  <div>
+                    <label for="updateUserId">User Code</label>
+                    <input id="updateUserId" name="user_id" type="text" placeholder="USR-XXXXXXX" required />
+                  </div>
+                  <div>
+                    <label for="updateUserRole">Role</label>
+                    <select id="updateUserRole" name="user_type">
+                      <option value="">No change</option>
+                      <option value="driver">Driver</option>
+                      <option value="attendant">Attendant</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="updateUserStatus">Status</label>
+                    <select id="updateUserStatus" name="status">
+                      <option value="">No change</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <button class="btn-accent" type="submit">Update user</button>
+                </form>
+                <div id="usersUpdateMessage" class="helper"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Attendant</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="attendant" data-role="attendant" data-shell-kicker="Smart Parking Management" data-shell-title="Attendant Console" data-shell-status="Shift ready" data-shell-page-label="Dashboard" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Attendant</span><span class="sidebar-subtitle">Operations desk</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link active" href="attendant.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="reservations.html"><span class="sidebar-icon">&#128197;</span><span class="sidebar-text">Reservations</span></a>
+          <a class="sidebar-link" href="occupancy.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Occupancy</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card ops-hero attendant-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Operations Console</div>
+              <h1 class="ops-hero-title">Keep arrivals, exits, and reservations flowing without delay.</h1>
+              <p class="ops-hero-text">
+                Fast lookups, live lot visibility, and a cleaner shift-ready workspace for the front desk team.
+              </p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#entryCard" data-attendant-open="entry" data-attendant-target="entryCard">Record entry</a>
+                <a class="btn-muted" href="#exitCard" data-attendant-open="exit" data-attendant-target="exitCard">Process exit</a>
+                <a class="btn-muted" href="reservations.html">Verify reservations</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge">
+                  <span>Shift mode</span>
+                  <strong>Live gate control</strong>
+                </div>
+                <div class="ops-badge">
+                  <span>Priority</span>
+                  <strong>Fast turnaround</strong>
+                </div>
+                <div class="ops-badge">
+                  <span>Status clock</span>
+                  <strong id="attendantTime">Checking current shift time...</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div id="summaryPanel" class="stat-grid"></div>
+
+          <div class="ops-shell-grid attendant-dashboard-grid">
+            <div class="ops-stack attendant-action-stack" id="attendantActionStack" hidden>
+              <section class="card ops-form-card" id="entryCard" hidden>
+                <div class="status">Vehicle Entry Logging</div>
+                <h2 class="title">Record incoming vehicle</h2>
+                <p class="subtitle">Search for a reservation, assign a slot, and confirm entry in one pass.</p>
+                <div class="attendant-inline-summary" id="attendantReservationSummary">
+                  <div class="title">No reservation loaded yet.</div>
+                  <div class="subtitle">Use the entry lookup to surface the driver, slot, and schedule before you confirm arrival.</div>
+                </div>
+                <form id="entryForm" class="grid">
+                  <div>
+                    <label for="entryVehicle">Vehicle registration number</label>
+                    <input id="entryVehicle" name="vehicle_number" type="text" placeholder="KBA 123A" required />
+                  </div>
+                  <div>
+                    <label for="entrySlotSelect">Select slot</label>
+                    <select id="entrySlotSelect" name="slot_id"></select>
+                  </div>
+                  <div>
+                    <label for="entryBookingId">Reservation ID (optional)</label>
+                    <input id="entryBookingId" name="booking_id" type="number" />
+                  </div>
+                  <div class="action-row wrap-row">
+                    <button class="btn-muted" type="button" id="lookupReservationBtn">Check Reservation</button>
+                    <button class="btn-muted" type="button" id="autoAssignSlotBtn">Auto-Assign Slot</button>
+                    <button class="btn-primary" type="submit">Confirm Entry</button>
+                  </div>
+                  <div id="entryReservationInfo" class="helper"></div>
+                </form>
+                <div id="entryMessage" class="helper"></div>
+              </section>
+
+              <section class="card ops-form-card" id="exitCard" hidden>
+                <div class="status">Vehicle Exit Logging</div>
+                <h2 class="title">Process vehicle exit</h2>
+                <p class="subtitle">Look up the active entry, confirm billing, and release the space quickly.</p>
+                <div class="attendant-inline-summary" id="attendantExitSummary">
+                  <div class="title">No active exit lookup yet.</div>
+                  <div class="subtitle">When you look up a vehicle at exit, the duration, charge, and payment state will appear here.</div>
+                </div>
+                <form id="exitForm" class="grid">
+                  <div>
+                    <label for="exitVehicle">Vehicle registration number</label>
+                    <input id="exitVehicle" name="vehicle_number" type="text" placeholder="KBA 123A" required />
+                  </div>
+                  <div class="action-row wrap-row">
+                    <button class="btn-muted" type="button" id="lookupExitBtn">Lookup Entry</button>
+                    <button class="btn-accent" type="submit">Process Exit</button>
+                  </div>
+                  <div id="exitInfo" class="helper"></div>
+                </form>
+                <div id="exitMessage" class="helper"></div>
+              </section>
+            </div>
+
+            <div class="ops-stack">
+              <section class="card ops-visual-card attendant-map-card">
+                <div class="driver-card-header">
+                  <div>
+                    <div class="status">Live Lot Map</div>
+                    <h2 class="title">Real-time occupancy monitor</h2>
+                    <p class="subtitle">Refresh the grid any time to see what can be assigned immediately, then open the desk panel only when needed.</p>
+                  </div>
+                  <button class="btn-muted" id="loadAttendantSlotsBtn" type="button">Refresh map</button>
+                </div>
+                <div class="helper attendant-grid-helper">Tap an available slot tile to prefill it and open the entry panel for faster processing.</div>
+                <div id="attendantSlotGrid" class="slot-grid ops-slot-grid parking-lot-board"></div>
+                <div class="slot-legend">
+                  <div class="legend-item"><span class="legend-dot available"></span>Available</div>
+                  <div class="legend-item"><span class="legend-dot booked"></span>Reserved</div>
+                  <div class="legend-item"><span class="legend-dot occupied"></span>Occupied</div>
+                  <div class="legend-item"><span class="legend-dot maintenance"></span>Maintenance</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Audit Logs</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin-audit" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Secure workspace" data-shell-page-label="Audit Trail" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link active" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero audit-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Audit Trail</div>
+              <h1 class="ops-hero-title">Follow every admin-side change with a cleaner review timeline.</h1>
+              <p class="ops-hero-text">Inspect user, slot, payment, and booking actions so reconciliation and accountability stay simple without duplicated views.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#loadAuditBtn">Load audit logs</a>
+                <a class="btn-muted" href="#auditEntityFilter">Filter entity</a>
+                <a class="btn-muted" href="admin-bookings.html">Open bookings</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Scope</span><strong>Users, slots, payments, bookings</strong></div>
+                <div class="ops-badge"><span>Use case</span><strong>Audit and follow-up</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card admin-inline-note-strip">
+            <div class="status">Workflow</div>
+            <p class="admin-inline-note-copy">Filter by entity only when you need a specific investigation; otherwise keep the full stream visible and review the latest actions in chronological order.</p>
+          </section>
+
+          <div class="audit-metrics-strip">
+            <section class="attendant-inline-summary admin-inline-summary-panel" id="auditStatTotal">
+              <div class="title">0</div>
+              <div class="subtitle">Loaded from the current filter.</div>
+            </section>
+            <section class="attendant-inline-summary admin-inline-summary-panel" id="auditStatBookings">
+              <div class="title">0</div>
+              <div class="subtitle">Recent booking-side changes.</div>
+            </section>
+            <section class="attendant-inline-summary admin-inline-summary-panel" id="auditStatPayments">
+              <div class="title">0</div>
+              <div class="subtitle">Refunds, overrides, and updates.</div>
+            </section>
+          </div>
+
+          <div class="ops-shell-grid admin-workspace-grid">
+            <section class="card ops-filter-card admin-filter-card">
+              <div class="status">Audit Filters</div>
+              <h2 class="title">Administrative audit trail</h2>
+              <div class="grid admin-filter-inline-grid">
+                <div>
+                  <label for="auditEntityFilter">Filter by entity</label>
+                  <select id="auditEntityFilter">
+                    <option value="">All</option>
+                    <option value="user">User</option>
+                    <option value="slot">Slot</option>
+                    <option value="payment">Payment</option>
+                    <option value="booking">Booking</option>
+                  </select>
+                </div>
+                <button class="btn-muted" id="loadAuditBtn" type="button">Load audit logs</button>
+              </div>
+              <div class="helper">Review the live stream below, then jump to the related admin page only when a specific corrective action is needed.</div>
+              <div id="auditMessage" class="helper"></div>
+            </section>
+
+            <section class="card ops-table-card admin-table-card">
+              <div class="driver-card-header">
+                <div>
+                  <div class="status">Activity Feed</div>
+                  <h2 class="title">Recent administrative actions</h2>
+                  <p class="subtitle">Each row shows what changed, where it happened, and when the action was recorded.</p>
+                </div>
+              </div>
+              <div class="table-shell">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Action</th>
+                      <th>Entity</th>
+                      <th>Admin</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="auditTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Reports</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin-reports" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Secure workspace" data-shell-page-label="Reports" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link active" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero reports-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Reporting Hub</div>
+              <h1 class="ops-hero-title">Generate occupancy, revenue, and user reports without leaving the dashboard.</h1>
+              <p class="ops-hero-text">Preview the output, export it instantly, and keep scheduled daily exports within reach without repeating the same clicks.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#generateReportBtn">Generate report</a>
+                <a class="btn-muted" href="#exportReportCsvBtn">Export CSV</a>
+                <a class="btn-muted" href="#reportScheduleSummary">Schedule status</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Exports</span><strong>CSV and PDF ready</strong></div>
+                <div class="ops-badge"><span>Scheduling</span><strong>Daily auto-save in one place</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card admin-inline-note-strip">
+            <div class="status">Workflow</div>
+            <p class="admin-inline-note-copy">Pick the report type, confirm the date window, preview the output, then export only after the summary looks right.</p>
+          </section>
+
+          <div class="reports-summary-strip">
+            <section class="attendant-inline-summary admin-inline-summary-panel" id="reportTypeSummary">
+              <div class="title">Occupancy Report</div>
+              <div class="subtitle">Choose a report type to refresh this summary.</div>
+            </section>
+            <section class="attendant-inline-summary admin-inline-summary-panel" id="reportLastGenerated">
+              <div class="title">Not generated yet</div>
+              <div class="subtitle">The preview will show here after you run a report.</div>
+            </section>
+          </div>
+
+          <div class="ops-shell-grid admin-workspace-grid">
+            <div class="ops-stack admin-form-stack">
+              <section class="card ops-form-card admin-filter-card">
+                <div class="status">Select Report Type</div>
+                <h2 class="title">Build the report</h2>
+                <div class="radio-group report-type-pills">
+                  <label><input type="radio" name="report_type" value="occupancy" checked /> Occupancy Report</label>
+                  <label><input type="radio" name="report_type" value="revenue" /> Revenue Report</label>
+                  <label><input type="radio" name="report_type" value="users" /> User Activity Report</label>
+                </div>
+                <div class="grid">
+                  <div>
+                    <label for="reportStart">Start Date</label>
+                    <input id="reportStart" type="date" />
+                  </div>
+                  <div>
+                    <label for="reportEnd">End Date</label>
+                    <input id="reportEnd" type="date" />
+                  </div>
+                  <div class="radio-group compact-checks">
+                    <label><input type="checkbox" id="autoExportCsv" /> Auto export CSV</label>
+                    <label><input type="checkbox" id="autoExportPdf" /> Auto export PDF</label>
+                  </div>
+                  <button class="btn-primary" id="generateReportBtn" type="button">Generate Report</button>
+                </div>
+                <div id="reportsMessage" class="helper"></div>
+              </section>
+
+              <section class="card ops-notes-card admin-actions-card" id="reportScheduleSummaryCard">
+                <div class="status">Scheduled Export</div>
+                <h2 class="title">Daily export status</h2>
+                <div class="attendant-inline-summary admin-inline-summary-panel report-schedule-inline" id="reportScheduleSummary">
+                  <div class="title">Loading schedule...</div>
+                  <div class="subtitle">Checking the current export schedule.</div>
+                </div>
+                <div id="reportScheduleInfo" class="inline-list"></div>
+                <div class="action-row wrap-row">
+                  <button class="action-btn" type="button" id="runReportExportBtn">Run Scheduled Export Now</button>
+                </div>
+                <div id="reportScheduleMessage" class="helper"></div>
+              </section>
+            </div>
+
+            <section class="card ops-table-card admin-table-card">
+              <div class="driver-card-header">
+                <div>
+                  <div class="status">Report Preview</div>
+                  <h2 class="title">Generated report</h2>
+                  <p class="subtitle">Preview the current output before sending it to CSV or PDF.</p>
+                </div>
+                <div class="action-row wrap-row">
+                  <button class="action-btn" id="exportReportPdfBtn" type="button">Export PDF</button>
+                  <button class="action-btn" id="exportReportCsvBtn" type="button">Export CSV</button>
+                </div>
+              </div>
+              <div class="table-shell">
+                <table class="table">
+                  <thead>
+                    <tr id="reportPreviewHead"></tr>
+                  </thead>
+                  <tbody id="reportPreviewBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Bookings</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin-bookings" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Secure workspace" data-shell-page-label="Booking Control" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link active" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero bookings-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Booking Control</div>
+              <h1 class="ops-hero-title">Review, reassign, and resolve bookings from one workspace.</h1>
+              <p class="ops-hero-text">Filter the queue, open a booking instantly, and audit every status change without jumping between pages.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="#bookingFilterForm">Review queue</a>
+                <a class="btn-muted" href="#bookingUpdateForm">Update booking</a>
+                <a class="btn-muted" href="#bookingAuditId">Open audit</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Actions</span><strong>Edit and reassign</strong></div>
+                <div class="ops-badge"><span>History</span><strong>Audit every update</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card admin-inline-note-strip">
+            <div class="status">Workflow</div>
+            <p class="admin-inline-note-copy">Filter the queue first, then load one booking into the edit and audit panels so changes stay deliberate and easy to trace.</p>
+          </section>
+
+          <div class="ops-shell-grid ops-shell-grid-wide admin-workspace-grid">
+            <div class="ops-stack admin-table-stack">
+              <section class="card ops-filter-card admin-filter-card">
+                <div class="status">Filters</div>
+                <h2 class="title">Find bookings</h2>
+                <form id="bookingFilterForm" class="grid">
+                  <div>
+                    <label for="bookingStatusFilter">Status</label>
+                    <select id="bookingStatusFilter">
+                      <option value="">All</option>
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="bookingSlotFilter">Slot Code</label>
+                    <input id="bookingSlotFilter" type="text" placeholder="SLT-XXXXXXX" />
+                  </div>
+                  <div>
+                    <label for="bookingUserFilter">User Code</label>
+                    <input id="bookingUserFilter" type="text" placeholder="USR-XXXXXXX" />
+                  </div>
+                  <div>
+                    <label for="bookingStartFilter">Start Date</label>
+                    <input id="bookingStartFilter" type="date" />
+                  </div>
+                  <div>
+                    <label for="bookingEndFilter">End Date</label>
+                    <input id="bookingEndFilter" type="date" />
+                  </div>
+                  <button class="btn-muted" type="button" id="loadBookingsBtn">Load bookings</button>
+                </form>
+                <div id="bookingsMessage" class="helper"></div>
+              </section>
+
+              <section class="card ops-table-card admin-table-card">
+                <div class="driver-card-header">
+                  <div>
+                    <div class="status">Bookings</div>
+                    <h2 class="title">Current bookings</h2>
+                    <p class="subtitle">Click a booking row to load it into the edit form and the audit view together.</p>
+                  </div>
+                </div>
+                <div class="table-shell">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Driver</th>
+                        <th>Schedule</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            <div class="ops-stack admin-form-stack">
+              <section class="card ops-form-card">
+                <div class="status">Manage Booking</div>
+                <h2 class="title">Edit, cancel, or reassign</h2>
+                <form id="bookingUpdateForm" class="grid">
+                  <div>
+                    <label for="updateBookingId">Booking ID</label>
+                    <input id="updateBookingId" name="booking_id" type="number" required />
+                  </div>
+                  <div>
+                    <label for="updateBookingStatus">Status</label>
+                    <select id="updateBookingStatus" name="status">
+                      <option value="">No change</option>
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="updateBookingSlot">Slot Code</label>
+                    <input id="updateBookingSlot" name="slot_id" type="text" placeholder="SLT-XXXXXXX" />
+                  </div>
+                  <div>
+                    <label for="updateBookingUser">User Code</label>
+                    <input id="updateBookingUser" name="user_id" type="text" placeholder="USR-XXXXXXX" />
+                  </div>
+                  <div>
+                    <label for="updateBookingStart">Start Time</label>
+                    <input id="updateBookingStart" name="start_time" type="datetime-local" />
+                  </div>
+                  <div>
+                    <label for="updateBookingEnd">End Time</label>
+                    <input id="updateBookingEnd" name="end_time" type="datetime-local" />
+                  </div>
+                  <div class="action-row wrap-row">
+                    <button class="btn-accent" type="submit">Update Booking</button>
+                    <button class="btn-muted" type="button" id="cancelBookingBtn">Cancel Booking</button>
+                  </div>
+                </form>
+                <div id="bookingUpdateMessage" class="helper"></div>
+              </section>
+
+              <section class="card ops-notes-card">
+                <div class="status">Booking Audit History</div>
+                <h2 class="title">Recent changes for this booking</h2>
+                <div class="grid">
+                  <div>
+                    <label for="bookingAuditId">Booking ID</label>
+                    <input id="bookingAuditId" type="number" min="1" />
+                  </div>
+                  <button class="btn-muted" type="button" id="loadBookingAuditBtn">Load history</button>
+                </div>
+                <div id="bookingAuditList" class="list"></div>
+                <div id="bookingAuditMessage" class="helper"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

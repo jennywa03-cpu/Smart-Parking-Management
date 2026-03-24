@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Admin</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="admin" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Executive workspace" data-shell-page-label="Dashboard" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link active" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
+          <a class="sidebar-link" href="admin-slots.html"><span class="sidebar-icon">&#127359;</span><span class="sidebar-text">Slots</span></a>
+          <a class="sidebar-link" href="admin-bookings.html"><span class="sidebar-icon">&#128221;</span><span class="sidebar-text">Bookings</span></a>
+          <a class="sidebar-link" href="admin-payments.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="admin-reports.html"><span class="sidebar-icon">&#128202;</span><span class="sidebar-text">Reports</span></a>
+          <a class="sidebar-link" href="admin-audit.html"><span class="sidebar-icon">&#8505;</span><span class="sidebar-text">Audit Trail</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card dashboard-hero admin-hero">
+            <div class="ops-hero-copy">
+              <div class="status">Executive Overview</div>
+              <h1 class="ops-hero-title">Run the lot with a sharper operational and revenue lens.</h1>
+              <p class="ops-hero-text">Track inventory pressure, booking flow, finance performance, and scheduled exports from one polished executive workspace.</p>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="admin-bookings.html">Manage bookings</a>
+                <a class="btn-muted" href="admin-reports.html">Open reports</a>
+                <a class="btn-muted" href="admin-payments.html">Review payments</a>
+              </div>
+            </div>
+            <div class="ops-hero-panel">
+              <div class="ops-badge-grid">
+                <div class="ops-badge"><span>Operations</span><strong>Live parking control</strong></div>
+                <div class="ops-badge"><span>Finance</span><strong>Revenue visibility</strong></div>
+                <div class="ops-badge"><span>Exports</span><strong>Daily scheduled reports</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <div id="summaryPanel" class="stat-grid"></div>
+
+          <section class="card admin-snapshot-card">
+            <div class="driver-card-header">
+              <div>
+                <div class="status">Performance Snapshot</div>
+                <h2 class="title">Keep the executive view compact and actionable.</h2>
+                <p class="subtitle">A tighter summary of occupancy pressure, collections, reservations, and operational follow-up.</p>
+              </div>
+            </div>
+            <div class="admin-snapshot-grid">
+              <article class="admin-snapshot-item">
+                <span class="admin-snapshot-label">Occupancy Rate</span>
+                <strong class="admin-snapshot-value" id="metricOccupancy">0%</strong>
+                <p class="admin-snapshot-note" id="metricOccupancyNote">Live active slots against total inventory.</p>
+              </article>
+              <article class="admin-snapshot-item">
+                <span class="admin-snapshot-label">Today's Revenue</span>
+                <strong class="admin-snapshot-value" id="metricRevenue">KES 0</strong>
+                <p class="admin-snapshot-note" id="metricRevenueNote">Collections update as payments settle.</p>
+              </article>
+              <article class="admin-snapshot-item">
+                <span class="admin-snapshot-label">Reserved Now</span>
+                <strong class="admin-snapshot-value" id="metricReservedCount">0</strong>
+                <p class="admin-snapshot-note" id="metricReservedNote">Bookings waiting for arrival.</p>
+              </article>
+              <article class="admin-snapshot-item">
+                <span class="admin-snapshot-label">Attention Needed</span>
+                <strong class="admin-snapshot-value" id="metricAttentionCount">0</strong>
+                <p class="admin-snapshot-note" id="metricAttentionNote">Maintenance and operational follow-up.</p>
+              </article>
+            </div>
+          </section>
+
+          <div class="chart-grid admin-dashboard-chart-grid">
+            <div class="chart-card admin-chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="status">Occupancy Trends</div>
+                  <h2 class="title">Weekly occupancy pattern</h2>
+                  <p class="subtitle">A cleaner read on live slot usage by operational status.</p>
+                </div>
+                <div class="chart-chip" id="occupancyChartChip">Live lot mix</div>
+              </div>
+              <div class="chart-inline-metrics" id="occupancyInsights"></div>
+              <div class="chart-placeholder" id="occupancyChart"></div>
+              <div class="chart-card-footer">
+                <div class="chart-footer-item">
+                  <span>Executive note</span>
+                  <strong id="occupancyChartCaption">Loading occupancy insight...</strong>
+                </div>
+                <div class="chart-footer-item chart-footer-item-muted">
+                  <span>Refresh cadence</span>
+                  <strong>Every 60 seconds</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card admin-chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="status">Revenue Over Time</div>
+                  <h2 class="title">Weekly revenue performance</h2>
+                  <p class="subtitle">Recent collections, daily average, and peak-day movement in one view.</p>
+                </div>
+                <div class="chart-chip" id="revenueChartChip">7-day outlook</div>
+              </div>
+              <div class="chart-inline-metrics" id="revenueInsights"></div>
+              <div class="chart-placeholder" id="revenueChart"></div>
+              <div class="chart-card-footer">
+                <div class="chart-footer-item">
+                  <span>Executive note</span>
+                  <strong id="revenueChartCaption">Loading revenue insight...</strong>
+                </div>
+                <div class="chart-footer-item chart-footer-item-muted">
+                  <span>Window</span>
+                  <strong>Latest 7 revenue days</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <section class="card admin-command-card">
+            <div class="driver-card-header">
+              <div>
+                <div class="status">Operations Desk</div>
+                <h2 class="title">Keep exports, audit follow-up, and quick actions in one place.</h2>
+                <p class="subtitle">The dashboard stays lighter while the critical admin actions remain visible and ready.</p>
+              </div>
+            </div>
+            <div class="admin-command-grid">
+              <section class="admin-command-block">
+                <h3>Daily exports</h3>
+                <div id="reportScheduleInfo" class="inline-list"></div>
+                <div class="action-row wrap-row">
+                  <a class="action-btn" href="admin-reports.html">Open Reports</a>
+                  <button class="action-btn" id="runReportExportBtn" type="button">Run Export Now</button>
+                </div>
+                <div id="reportScheduleMessage" class="helper"></div>
+              </section>
+
+              <section class="admin-command-block">
+                <h3>Recent booking updates</h3>
+                <div id="bookingAuditList" class="list"></div>
+                <div id="bookingAuditMessage" class="helper"></div>
+              </section>
+            </div>
+            <div class="admin-command-actions">
+              <a class="ops-note" href="admin-users.html">
+                <strong>Manage users</strong>
+                <span>Create staff accounts, update access, and review account status.</span>
+              </a>
+              <a class="ops-note" href="admin-slots.html">
+                <strong>Adjust slot inventory</strong>
+                <span>Update rates, maintenance status, and parking availability.</span>
+              </a>
+              <a class="ops-note" href="admin-audit.html">
+                <strong>Review audit trail</strong>
+                <span>Inspect recent actions and follow up on changes without leaving the dashboard.</span>
+              </a>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

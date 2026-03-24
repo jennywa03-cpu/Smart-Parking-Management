@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Payments</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="payment" data-role="driver" data-shell-kicker="Smart Parking Management" data-shell-title="Driver Portal" data-shell-status="Payment desk" data-shell-page-label="Payments" class="app-body">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header"><span class="sidebar-brand">Driver</span><span class="sidebar-subtitle">Self-service parking</span></div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="driver.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
+          <a class="sidebar-link active" href="payment.html"><span class="sidebar-icon">&#128179;</span><span class="sidebar-text">Payments</span></a>
+          <a class="sidebar-link" href="profile.html"><span class="sidebar-icon">&#128100;</span><span class="sidebar-text">Profile</span></a>
+          <a class="sidebar-link" href="index.html" data-logout="true"><span class="sidebar-icon">&#10162;</span><span class="sidebar-text">Logout</span></a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+                <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
+          </div>
+          <div class="topbar-right"></div>
+        </header>
+
+        <div class="content">
+          <section class="card driver-payment-shell">
+            <div class="driver-card-header payment-header-tight">
+              <div>
+                <div class="status">Payment Module</div>
+                <h1 class="title">Complete your payment</h1>
+                <p class="subtitle">Keep the booking selection, next step, and payment form together in one cleaner payment workspace.</p>
+              </div>
+              <a class="btn-muted" href="driver.html">Back to driver dashboard</a>
+            </div>
+
+            <div id="paymentHoldNotice" class="driver-hold-banner">
+              <strong>Payment hold:</strong>
+              <span id="paymentHoldText">You have 2 minutes to confirm payment before the selection is released automatically.</span>
+              <strong id="paymentCountdown">02:00 remaining</strong>
+            </div>
+
+            <div class="payment-summary-strip">
+              <section class="attendant-inline-summary payment-summary-card" id="paymentSelectionSummary">
+                <div class="title">Choose a booking to continue.</div>
+                <div class="subtitle">Once selected, the amount, timing, and hold countdown update automatically here.</div>
+              </section>
+              <section class="attendant-inline-summary payment-summary-card" id="paymentNextStepSummary">
+                <div class="title">Complete mobile-money confirmation.</div>
+                <div class="subtitle">We will guide you through the next action so you can finish payment before the slot is released.</div>
+              </section>
+            </div>
+
+            <section class="driver-empty-state driver-payment-empty" id="paymentEmptyState" hidden>
+              <strong>No pending payments right now.</strong>
+              <div>Your unpaid reservations will appear here as soon as you create one from the driver dashboard.</div>
+              <div class="ops-hero-actions">
+                <a class="btn-primary" href="driver.html#driver-slot-catalog">Find a parking space</a>
+                <a class="btn-muted" href="driver.html#driver-history-section">Review bookings</a>
+              </div>
+            </section>
+
+            <section class="driver-flash-card driver-payment-success" id="paymentSuccessState" hidden>
+              <div class="status">Payment Update</div>
+              <h2 class="title" id="paymentSuccessTitle">Payment request sent.</h2>
+              <p class="subtitle" id="paymentSuccessBody">Check your phone to complete the prompt. This panel will keep the next step visible.</p>
+            </section>
+
+            <form id="paymentForm" class="grid driver-payment-form">
+              <div>
+                <label for="paymentBookingSelect">Booking</label>
+                <select id="paymentBookingSelect" name="booking_id">
+                  <option value="">Select booking</option>
+                </select>
+              </div>
+
+              <div class="driver-payment-summary inline-list">
+                <div><strong>Slot:</strong> <span id="paymentSlot">-</span></div>
+                <div><strong>Duration:</strong> <span id="paymentDuration">-</span></div>
+                <div><strong>Total:</strong> <span id="paymentTotal">KES 0</span></div>
+              </div>
+
+              <div class="radio-group">
+                <label><input type="radio" name="payment_method" value="cash" /> Cash</label>
+                <label><input type="radio" name="payment_method" value="mobile_money" checked /> Mobile Money</label>
+              </div>
+
+              <div id="mobileMoneyFields">
+                <div>
+                  <label for="paymentProvider">Provider</label>
+                  <select id="paymentProvider" name="provider">
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Airtel Money">Airtel Money</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="paymentPhone">Phone number</label>
+                  <input id="paymentPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
+                </div>
+              </div>
+
+              <div class="helper payment-inline-note">Mobile-money bookings must be confirmed within the live hold window. Cash bookings remain payable at exit.</div>
+              <button class="btn-primary" type="submit">Pay Now</button>
+            </form>
+            <div id="paymentMessage" class="helper"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
+

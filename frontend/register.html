@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Parking Management | Register</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
+    <link rel="icon" href="public/favicon.ico" />
+  </head>
+  <body data-page="register" class="auth-hero">
+    <div class="auth-overlay"></div>
+
+    <main class="auth-hero-shell">
+      <section class="hero-left">
+        <div class="hero-kicker">Smart Parking Management</div>
+        <h1 class="hero-title">Start parking smarter</h1>
+        <p class="hero-text">
+          Register once and manage your bookings, payments, and history securely.
+        </p>
+        <div class="hero-meta">Create your driver profile</div>
+      </section>
+
+      <section class="hero-right">
+        <div class="hero-card">
+          <h2 class="hero-form-title">Register</h2>
+          <form id="registerForm" class="hero-form">
+            <label for="regName">Full name</label>
+            <input id="regName" name="name" type="text" autocomplete="name" required />
+
+            <label for="regEmail">Email</label>
+            <input id="regEmail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required />
+
+            <label for="regPhone">Phone number</label>
+            <input id="regPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
+
+            <label for="regVehicle">Vehicle registration number</label>
+            <input id="regVehicle" name="vehicle_number" type="text" autocapitalize="characters" spellcheck="false" required />
+
+            <label for="regPassword">Password</label>
+            <div class="input-group">
+              <input id="regPassword" name="password" type="password" autocomplete="new-password" required />
+              <button type="button" class="toggle-visibility" data-target="regPassword" aria-label="Show password">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.3 21.3 0 0 1 5.17-6.26"></path>
+                  <path d="M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47"></path>
+                  <path d="M1 1l22 22"></path>
+                </svg>
+              </button>
+            </div>
+
+            <label for="regPasswordConfirm">Confirm password</label>
+            <div class="input-group">
+              <input id="regPasswordConfirm" name="confirm_password" type="password" autocomplete="new-password" required />
+              <button type="button" class="toggle-visibility" data-target="regPasswordConfirm" aria-label="Show password">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.3 21.3 0 0 1 5.17-6.26"></path>
+                  <path d="M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47"></path>
+                  <path d="M1 1l22 22"></path>
+                </svg>
+              </button>
+            </div>
+
+            <button class="hero-button" type="submit">Create account</button>
+          </form>
+
+          <div class="hero-links">
+            <a href="index.html">Back to login</a>
+          </div>
+          <div id="registerMessage" class="helper"></div>
+          <div class="hero-terms">
+            By clicking on "Create account" you agree to Terms of Service | Privacy Policy
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
