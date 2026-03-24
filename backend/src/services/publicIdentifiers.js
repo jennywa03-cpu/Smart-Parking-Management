@@ -1,4 +1,4 @@
-﻿const crypto = require('crypto');
+const crypto = require('crypto');
 
 const USER_PREFIX = 'USR';
 const SLOT_PREFIX = 'SLT';
@@ -83,13 +83,18 @@ async function generateUniquePublicId(connection, tableName, columnName, prefix)
 }
 
 async function backfillPublicIds(connection, tableName, keyColumn, publicColumn, prefix) {
+  const validPattern = new RegExp(`^${prefix}-[A-Z0-9]{${SEGMENT_LENGTH}}$`);
   const [rows] = await connection.query(
-    `SELECT \`${keyColumn}\` AS id
-       FROM \`${tableName}\`
-      WHERE \`${publicColumn}\` IS NULL OR \`${publicColumn}\` = ''`
+    `SELECT \`${keyColumn}\` AS id, \`${publicColumn}\` AS public_id
+       FROM \`${tableName}\``
   );
 
   for (const row of rows) {
+    const existing = normalizePublicId(row.public_id);
+    if (validPattern.test(existing)) {
+      continue;
+    }
+
     const publicId = await generateUniquePublicId(connection, tableName, publicColumn, prefix);
     await connection.query(
       `UPDATE \`${tableName}\` SET \`${publicColumn}\` = ? WHERE \`${keyColumn}\` = ?`,

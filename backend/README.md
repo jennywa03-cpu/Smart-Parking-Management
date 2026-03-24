@@ -12,6 +12,12 @@ npm install
 npm run dev
 ```
 
+## Railway Notes
+- Railway MySQL variables are supported directly: `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`.
+- For one-go Railway deployment, use the root `railway.toml` and deploy from the repository root.
+- The backend serves the frontend files automatically when the repo is deployed from root.
+- The Railway pre-deploy bootstrap command is `npm run railway:bootstrap`.
+
 ## Deployment Admin Bootstrap
 - Set `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, and `ADMIN_SEED_PASSWORD` in your local `.env`.
 - The backend creates or refreshes that admin account only until the first successful password change.

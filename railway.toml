@@ -1,0 +1,12 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "npm run railway:build"
+watchPatterns = ["/backend/**", "/frontend/**", "/database/**", "/documentation/**", "/package.json"]
+
+[deploy]
+preDeployCommand = "npm run railway:bootstrap"
+startCommand = "npm run railway:start"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

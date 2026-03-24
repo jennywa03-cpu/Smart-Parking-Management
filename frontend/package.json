@@ -4,8 +4,8 @@
   "description": "Frontend for the Smart Parking Management System",
   "private": true,
   "scripts": {
-    "dev": "http-server . -p 5500 -c-1 -d false -o index.html",
-    "start": "http-server . -p 5500 -c-1 -d false -o index.html"
+    "dev": "node server.js",
+    "start": "node server.js"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

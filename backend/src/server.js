@@ -1,4 +1,6 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -83,6 +85,11 @@ app.use('/api/attendant', attendantRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/users', usersRoutes);
+
+const frontendDir = path.resolve(__dirname, '..', '..', 'frontend');
+if (fs.existsSync(frontendDir)) {
+  app.use(express.static(frontendDir));
+}
 
 app.use((err, req, res, next) => {
   // eslint-disable-line no-unused-vars

@@ -1,0 +1,9 @@
+{
+  "name": "smart-parking-management-root",
+  "private": true,
+  "scripts": {
+    "railway:build": "npm --prefix backend ci --omit=dev",
+    "railway:bootstrap": "npm --prefix backend run railway:bootstrap",
+    "railway:start": "npm --prefix backend start"
+  }
+}

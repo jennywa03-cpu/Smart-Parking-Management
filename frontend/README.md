@@ -27,6 +27,7 @@ Edit:
 - Admin dashboard: `admin.html`
 
 ## Notes
-- The frontend is static and served with `http-server` during local development.
-- Role pages are wired to the Node.js backend on `http://localhost:4000` by default.
-- For release/handoff details, review `../documentation/PROJECT-HANDOFF.md`.
+- The frontend now runs through `server.js` locally.
+- On Railway one-go deployment, the backend serves the frontend directly from the repo root deployment.
+- Runtime API configuration still supports `FRONTEND_API_BASE` for optional split deployments, but it is not required for the root Railway deployment.
+- For release/handoff details, review `../documentation/PROJECT-HANDOFF.md` and `../documentation/RAILWAY-DEPLOYMENT.md`.

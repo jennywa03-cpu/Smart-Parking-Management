@@ -17,15 +17,18 @@
 - Configure M-Pesa credentials only if mobile-money production flow is required
 - Confirm `REPORT_EXPORT_DIR` is writable by the backend process
 
-## Recommended Release Steps
-1. Provision MySQL and create `Park_db`
-2. Import `database/schema.sql` and then `database/seed.sql`
-3. Configure `backend/.env`
-4. Install backend dependencies with `npm install`
-5. Start the backend with `npm start`
-6. Serve `frontend/` from static hosting or a web server
-7. Update `frontend/assets/js/config.js` if the API base URL changes
-8. Run `npm run smoke` from `backend/`
+## Railway Release Steps
+1. Create a Railway project.
+2. Add a Railway MySQL service to the project.
+3. Deploy this repository as a single Railway app service from the repo root. The root `railway.toml` handles the build, pre-deploy bootstrap, start command, and healthcheck.
+4. Set these Railway app variables:
+   - `JWT_SECRET`
+   - `PAYMENT_WEBHOOK_SECRET`
+   - `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`
+   - `RESET_URL_BASE` to `https://your-app-domain/reset-password.html`
+   - email/payment variables from `backend/.env.example` as needed
+5. Redeploy. Railway will run `npm run railway:bootstrap`, then start the backend which also serves the frontend.
+6. Open the single Railway domain, sign in with the seeded admin account once, and change the password immediately.
 
 ## Frontend Hosting Options
 - Apache/XAMPP document root

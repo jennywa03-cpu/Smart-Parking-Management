@@ -54,6 +54,33 @@ Default frontend URL:
 4. Open `http://localhost:5500`.
 5. Sign in with the admin credentials configured in `backend/.env`, then change the password immediately on first successful login.
 
+## Railway Deployment
+
+This repo is now prepared for a single Railway app deployment from the repository root, with the backend serving the frontend and bootstrapping the database automatically.
+
+Railway setup:
+1. Create a Railway project.
+2. Add one Railway MySQL service to that project.
+3. Deploy this repository once from the repo root using the root `railway.toml`.
+4. Set backend variables in the Railway app service:
+   - `JWT_SECRET`
+   - `PAYMENT_WEBHOOK_SECRET`
+   - `ADMIN_SEED_NAME`
+   - `ADMIN_SEED_EMAIL`
+   - `ADMIN_SEED_PASSWORD`
+   - `RESET_URL_BASE` to `https://your-app-domain/reset-password.html`
+   - notification/payment variables as needed
+5. The backend now serves the frontend files directly, so the browser UI and API can share one Railway domain.
+6. Railway MySQL variables are supported directly: `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQLDATABASE`.
+7. The Railway pre-deploy step runs `npm run railway:bootstrap` to apply schema, seed data, and migrations automatically.
+
+Important note:
+- Railway MySQL is still a separate Railway service, but the repository itself now deploys as one app service from one root deployment.
+
+Railway-specific handoff:
+- `documentation/RAILWAY-DEPLOYMENT.md`
+- `documentation/DEPLOYMENT-HANDOFF.md`
+
 ## Verification
 
 Backend health:
