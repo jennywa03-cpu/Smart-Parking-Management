@@ -73,6 +73,7 @@ Railway setup:
 5. The backend now serves the frontend files directly, so the browser UI and API can share one Railway domain.
 6. Add Railway MySQL reference variables to the app service. The backend supports `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`, and `MYSQL_URL` directly.
 7. The Railway pre-deploy step runs `npm run railway:bootstrap` to apply schema, seed data, and migrations automatically.
+8. Root `build.sh` and `start.sh` are also present as a Railpack shell fallback if Railway does not auto-detect the Node monorepo layout.
 
 Important note:
 - Railway MySQL is still a separate Railway service, but the repository itself now deploys as one app service from one root deployment.

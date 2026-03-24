@@ -14,6 +14,7 @@ Important note:
 ## Root deployment files
 - Root config: `railway.toml`
 - Root scripts: `package.json`
+- Root shell fallback: `build.sh` and `start.sh`
 - Backend bootstrap: `backend/scripts/railway-bootstrap.js`
 
 ## Required Railway app variables
