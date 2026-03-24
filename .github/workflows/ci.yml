@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - stable-backup
+  pull_request:
+
+jobs:
+  backend-smoke:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: Park_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            documentation/tools/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install documentation tool dependencies
+        working-directory: documentation/tools
+        run: npm ci
+
+      - name: Prepare backend environment
+        shell: bash
+        run: |
+          cp backend/.env.example backend/.env
+          {
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=3306"
+            echo "DB_USER=root"
+            echo "DB_PASSWORD=root"
+            echo "DB_NAME=Park_db"
+            echo "PORT=4000"
+            echo "CORS_ALLOW_ALL=true"
+            echo "SHOW_RESET_TOKEN=true"
+            echo "EMAIL_ENABLED=false"
+          } >> backend/.env
+
+      - name: Import database schema
+        run: mysql -h 127.0.0.1 -uroot -proot Park_db < database/schema.sql
+
+      - name: Import database seed
+        run: mysql -h 127.0.0.1 -uroot -proot Park_db < database/seed.sql
+
+      - name: Start backend server
+        working-directory: backend
+        run: |
+          npm run dev > ../backend-ci.log 2>&1 &
+          echo $! > ../backend-ci.pid
+
+      - name: Wait for backend health
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4000/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed to start"
+          cat backend-ci.log
+          exit 1
+
+      - name: Frontend JavaScript syntax check
+        run: node --check frontend/assets/js/app.js
+
+      - name: Backend smoke tests
+        working-directory: backend
+        run: npm run smoke
+
+      - name: Upload backend log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-ci-log
+          path: backend-ci.log
