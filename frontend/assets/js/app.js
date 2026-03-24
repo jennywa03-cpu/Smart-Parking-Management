@@ -256,7 +256,7 @@ function buildTopbarProfileShell() {
  const dashboardTitle = passwordResetRequired ? 'Update password first' : 'Go to dashboard';
  const dashboardSubtitle = passwordResetRequired
   ? 'Finish the required password change before leaving this page'
-  : 'Return to your workspace';
+  : 'Return to your dashboard';
  const shell = document.createElement('div');
  shell.className = 'topbar-profile-shell';
  shell.setAttribute('data-topbar-profile', 'true');
@@ -292,7 +292,7 @@ function buildTopbarProfileShell() {
     <span class="topbar-profile-action-icon" aria-hidden="true">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M13 3h8v18h-8"></path></svg>
     </span>
-    <span class="topbar-profile-action-copy"><strong>Logout</strong><span>Sign out securely</span></span>
+    <span class="topbar-profile-action-copy"><strong>Logout</strong><span>Sign out of your account</span></span>
    </button>
   </div>
  `;
@@ -2234,20 +2234,20 @@ if (page === 'profile') {
   admin: {
    chip: 'Admin account',
    label: 'Administrator',
-   title: 'Manage your administrator profile without leaving the control center.',
+   title: 'Manage your administrator profile from one place.',
    text: 'Keep your contact details current so approvals, exports, and account recovery stay smooth.',
   },
   attendant: {
    chip: 'Attendant account',
    label: 'Parking Attendant',
-   title: 'Stay ready for the next vehicle entry with an organized account workspace.',
+   title: 'Stay ready for the next vehicle entry with one clear account page.',
    text: 'Update your contact details so handoff communication and shift coordination stay in sync.',
   },
   driver: {
    chip: 'Driver account',
    label: 'Driver',
-   title: 'Keep your profile polished and ready for the next parking session.',
-   text: 'Update your contact details, vehicle information, and account recovery settings from one secure workspace.',
+   title: 'Keep your profile ready for the next parking session.',
+   text: 'Update your contact details, vehicle information, and account recovery settings from one place.',
   },
  };
 

@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
     <link rel="icon" href="public/favicon.ico" />
   </head>
-  <body data-page="admin" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Control Center" data-shell-status="Executive workspace" data-shell-page-label="Dashboard" class="app-body">
+  <body data-page="admin" data-role="admin" data-shell-kicker="Smart Parking Management" data-shell-title="Admin Dashboard" data-shell-status="Daily overview" data-shell-page-label="Dashboard" class="app-body">
     <div class="app-shell">
       <aside class="sidebar">
-        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Control Center</span></div>
+        <div class="sidebar-header"><span class="sidebar-brand">Admin</span><span class="sidebar-subtitle">Dashboard</span></div>
         <nav class="sidebar-nav">
           <a class="sidebar-link active" href="admin.html"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Dashboard</span></a>
           <a class="sidebar-link" href="admin-users.html"><span class="sidebar-icon">&#128101;</span><span class="sidebar-text">Users</span></a>
@@ -36,9 +36,9 @@
         <div class="content">
           <section class="card dashboard-hero admin-hero">
             <div class="ops-hero-copy">
-              <div class="status">Executive Overview</div>
+              <div class="status">Overview</div>
               <h1 class="ops-hero-title">Run the lot with a sharper operational and revenue lens.</h1>
-              <p class="ops-hero-text">Track inventory pressure, booking flow, finance performance, and scheduled exports from one polished executive workspace.</p>
+              <p class="ops-hero-text">Track inventory pressure, booking flow, finance performance, and scheduled exports from one clear dashboard.</p>
               <div class="ops-hero-actions">
                 <a class="btn-primary" href="admin-bookings.html">Manage bookings</a>
                 <a class="btn-muted" href="admin-reports.html">Open reports</a>
@@ -60,7 +60,7 @@
             <div class="driver-card-header">
               <div>
                 <div class="status">Performance Snapshot</div>
-                <h2 class="title">Keep the executive view compact and actionable.</h2>
+                <h2 class="title">Keep the main view compact and actionable.</h2>
                 <p class="subtitle">A tighter summary of occupancy pressure, collections, reservations, and operational follow-up.</p>
               </div>
             </div>
@@ -102,7 +102,7 @@
               <div class="chart-placeholder" id="occupancyChart"></div>
               <div class="chart-card-footer">
                 <div class="chart-footer-item">
-                  <span>Executive note</span>
+                  <span>Summary</span>
                   <strong id="occupancyChartCaption">Loading occupancy insight...</strong>
                 </div>
                 <div class="chart-footer-item chart-footer-item-muted">
@@ -124,7 +124,7 @@
               <div class="chart-placeholder" id="revenueChart"></div>
               <div class="chart-card-footer">
                 <div class="chart-footer-item">
-                  <span>Executive note</span>
+                  <span>Summary</span>
                   <strong id="revenueChartCaption">Loading revenue insight...</strong>
                 </div>
                 <div class="chart-footer-item chart-footer-item-muted">
