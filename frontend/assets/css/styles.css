@@ -7774,3 +7774,82 @@ body[data-page='profile'] .input-wrap > input[type='password'],
 body[data-page='profile'] .input-wrap > input[type='text'] {
   padding-right: 46px !important;
 }
+
+/* Shared auth toggle stability and card content containment */
+.input-group > input[type='password'],
+.input-wrap > input[type='password'] {
+  padding-right: 46px !important;
+}
+
+.hero-card,
+.app-body .card,
+.app-body .stat-card,
+.app-body .driver-slot-card,
+.app-body .slot-tile,
+.app-body .overview-mini-card,
+.app-body .ops-note,
+.app-body .payment-summary-card,
+.app-body .profile-form-card,
+.app-body .profile-support-card,
+.app-body .admin-table-card,
+.app-body .admin-actions-card,
+.app-body .admin-filter-card,
+.app-body .ops-table-card,
+.app-body .ops-form-card,
+.app-body .ops-filter-card,
+.app-body .ops-visual-card {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-card > *,
+.app-body .card > *,
+.app-body .stat-card > *,
+.app-body .driver-slot-card > *,
+.app-body .slot-tile > *,
+.app-body .overview-mini-card > *,
+.app-body .ops-note > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hero-card .hero-form-title,
+.hero-card .hero-text,
+.hero-card .hero-terms,
+.hero-card .helper,
+.app-body .card .title,
+.app-body .card .subtitle,
+.app-body .card .helper,
+.app-body .card .status,
+.app-body .card p,
+.app-body .card span,
+.app-body .card strong,
+.app-body .card a,
+.app-body .card button,
+.app-body .card label,
+.app-body .stat-card .stat-label,
+.app-body .stat-card .stat-meta,
+.app-body .stat-card .stat-footer,
+.app-body .table-cell-meta,
+.app-body .table-cell-stack strong,
+.app-body .driver-slot-number,
+.app-body .driver-slot-location,
+.app-body .driver-slot-note,
+.app-body .ops-note span,
+.app-body .ops-note strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.app-body .driver-card-header,
+.app-body .topbar-right,
+.app-body .topbar-notification-panel,
+.app-body .topbar-profile-menu,
+.app-body .table-action-group,
+.app-body .ops-note-list,
+.app-body .reports-overview-grid,
+.app-body .grid {
+  min-width: 0;
+}
