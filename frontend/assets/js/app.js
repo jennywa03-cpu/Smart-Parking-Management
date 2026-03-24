@@ -5,6 +5,13 @@ const requireAuthOnly = document.body.dataset.auth === 'true';
 const AUTH_STORAGE_KEY = 'park_auth';
 const SIDEBAR_COLLAPSE_KEY = 'sidebar_collapsed';
 let refreshSummary = null;
+const topbarNoticeState = {
+ persistent: null,
+ items: [],
+ counter: 0,
+ unreadIds: new Set(),
+ timers: new Map(),
+};
 
 function padDatePart(value) {
  return String(value).padStart(2, '0');
@@ -345,6 +352,308 @@ function buildTopbarProfileShell() {
  return shell;
 }
 
+function supportsTopbarNotices() {
+ return Boolean(document.querySelector('.topbar')) && !['login', 'register', 'forgot-password', 'reset-password'].includes(page);
+}
+
+function getTopbarNoticeDefinition(type = 'info') {
+ const definitions = {
+  success: {
+   label: 'Success',
+   dismissLabel: 'Dismiss success notification',
+   autoCloseMs: 5000,
+   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>',
+  },
+  error: {
+   label: 'Error',
+   dismissLabel: 'Dismiss error notification',
+   autoCloseMs: 0,
+   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>',
+  },
+  warn: {
+   label: 'Attention',
+   dismissLabel: 'Dismiss warning notification',
+   autoCloseMs: 0,
+   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20L12 3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
+  },
+  info: {
+   label: 'Update',
+   dismissLabel: 'Dismiss notification',
+   autoCloseMs: 7000,
+   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8h.01"></path></svg>',
+  },
+ };
+
+ return definitions[type] || definitions.info;
+}
+
+function getTopbarNoticeItems() {
+ const items = [];
+ if (topbarNoticeState.persistent?.message) {
+  items.push(topbarNoticeState.persistent);
+ }
+ items.push(...topbarNoticeState.items);
+ return items;
+}
+
+function clearTopbarNoticeTimer(id) {
+ const timer = topbarNoticeState.timers.get(id);
+ if (timer) {
+  clearTimeout(timer);
+  topbarNoticeState.timers.delete(id);
+ }
+}
+
+function removeTopbarNotice(id) {
+ if (id === 'persistent') {
+  topbarNoticeState.persistent = null;
+ } else {
+  topbarNoticeState.items = topbarNoticeState.items.filter((item) => item.id !== id);
+ }
+ topbarNoticeState.unreadIds.delete(id);
+ clearTopbarNoticeTimer(id);
+ renderTopbarNotice();
+}
+
+function markTopbarNoticesRead(ids = []) {
+ ids.forEach((id) => topbarNoticeState.unreadIds.delete(id));
+ renderTopbarNotice();
+}
+
+function markVisibleTopbarNoticesRead() {
+ markTopbarNoticesRead(getTopbarNoticeItems().map((item) => item.id));
+}
+
+function getUnreadTopbarCount() {
+ return getTopbarNoticeItems().filter((item) => topbarNoticeState.unreadIds.has(item.id)).length;
+}
+
+function openTopbarNoticeMenu(shell) {
+ if (!shell) return;
+ closeTopbarNoticeMenus();
+ shell.classList.add('is-open');
+ shell.querySelector('.topbar-notice-trigger')?.setAttribute('aria-expanded', 'true');
+ shell.querySelector('.topbar-notice-menu')?.setAttribute('aria-hidden', 'false');
+ markVisibleTopbarNoticesRead();
+}
+
+function closeTopbarNoticeMenus() {
+ document.querySelectorAll('.topbar-notice-shell.is-open').forEach((shell) => {
+  shell.classList.remove('is-open');
+  shell.querySelector('.topbar-notice-trigger')?.setAttribute('aria-expanded', 'false');
+  shell.querySelector('.topbar-notice-menu')?.setAttribute('aria-hidden', 'true');
+ });
+}
+
+function ensureTopbarNoticeRegion() {
+ const topbarRight = document.querySelector('.topbar-right');
+ if (!topbarRight) return null;
+
+ let shell = topbarRight.querySelector('[data-topbar-notices]');
+ if (shell) return shell;
+
+ shell = document.createElement('div');
+ shell.className = 'topbar-notice-shell';
+ shell.setAttribute('data-topbar-notices', 'true');
+ shell.innerHTML =
+  '<button type="button" class="topbar-notice-trigger" aria-haspopup="dialog" aria-expanded="false" aria-label="Open notifications">' +
+  '<span class="topbar-notice-trigger-icon" aria-hidden="true">' +
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.17V11a6 6 0 1 0-12 0v3.17a2 2 0 0 1-.59 1.42L4 17h5"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>' +
+  '</span>' +
+  '<span class="topbar-notice-badge" hidden>0</span>' +
+  '</button>' +
+  '<div class="topbar-notice-menu" role="dialog" aria-hidden="true" aria-label="Notifications">' +
+  '<div class="topbar-notice-menu-head">' +
+  '<div><span class="topbar-notice-menu-kicker">Inbox</span><strong>Notifications</strong></div>' +
+  '<button type="button" class="topbar-notice-clear">Clear</button>' +
+  '</div>' +
+  '<div class="topbar-notice-list"></div>' +
+  '</div>';
+
+ const trigger = shell.querySelector('.topbar-notice-trigger');
+ const menu = shell.querySelector('.topbar-notice-menu');
+ const clearButton = shell.querySelector('.topbar-notice-clear');
+
+ trigger?.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const willOpen = !shell.classList.contains('is-open');
+  if (willOpen) {
+   openTopbarNoticeMenu(shell);
+   return;
+  }
+  closeTopbarNoticeMenus();
+ });
+
+ clearButton?.addEventListener('click', (event) => {
+  event.preventDefault();
+  topbarNoticeState.items.forEach((item) => clearTopbarNoticeTimer(item.id));
+  topbarNoticeState.items = [];
+  topbarNoticeState.unreadIds.clear();
+  renderTopbarNotice();
+ });
+
+ document.addEventListener('click', (event) => {
+  if (!shell.contains(event.target)) {
+   closeTopbarNoticeMenus();
+  }
+ });
+
+ document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+   closeTopbarNoticeMenus();
+  }
+ });
+
+ topbarRight.prepend(shell);
+ if (menu) menu.scrollTop = 0;
+ return shell;
+}
+
+function renderTopbarNotice() {
+ const shell = ensureTopbarNoticeRegion();
+ if (!shell) return;
+
+ const badge = shell.querySelector('.topbar-notice-badge');
+ const list = shell.querySelector('.topbar-notice-list');
+ const clearButton = shell.querySelector('.topbar-notice-clear');
+ const items = getTopbarNoticeItems();
+ const unreadCount = getUnreadTopbarCount();
+
+ shell.classList.toggle('has-unread', unreadCount > 0);
+
+ if (badge) {
+  badge.hidden = unreadCount === 0;
+  badge.textContent = unreadCount > 9 ? '9+' : String(unreadCount);
+ }
+
+ if (!list) return;
+
+ if (!items.length) {
+  list.innerHTML = '<div class="topbar-notice-empty">No notifications yet.</div>';
+  if (clearButton) clearButton.hidden = true;
+  return;
+ }
+
+ if (clearButton) {
+  clearButton.hidden = topbarNoticeState.items.length === 0;
+ }
+
+ list.innerHTML = items
+  .map((item, index) => {
+   const definition = getTopbarNoticeDefinition(item.type);
+   const timestamp = item.createdAt ? formatNumericDateTime(item.createdAt) : 'Just now';
+   const unreadClass = topbarNoticeState.unreadIds.has(item.id) ? ' is-unread' : '';
+   const category = escapeHtml(item.category || 'System');
+   const dismissControl = item.persistent
+    ? ''
+    : '<button type="button" class="topbar-notice-item-dismiss" data-notice-id="' + item.id + '" aria-label="' + definition.dismissLabel + '">&times;</button>';
+   return (
+    '<article class="topbar-notice-item is-' + item.type + (item.persistent ? ' is-persistent' : '') + unreadClass + '" style="--notice-index:' + index + '">' +
+    '<span class="topbar-notice-item-icon" aria-hidden="true">' + definition.icon + '</span>' +
+    '<div class="topbar-notice-item-copy">' +
+    '<div class="topbar-notice-item-meta"><span class="topbar-notice-item-label">' + definition.label + '</span><span class="topbar-notice-item-category">' + category + '</span></div>' +
+    '<strong>' + item.message + '</strong>' +
+    '<span>' + timestamp + '</span>' +
+    '</div>' +
+    dismissControl +
+    '</article>'
+   );
+  })
+  .join('');
+
+ list.querySelectorAll('.topbar-notice-item-dismiss').forEach((button) => {
+  button.addEventListener('click', (event) => {
+   event.preventDefault();
+   removeTopbarNotice(Number(button.dataset.noticeId));
+  });
+ });
+}
+
+function scheduleTopbarNoticeRemoval(notice) {
+ if (!notice || notice.persistent) return;
+ const autoCloseMs = getTopbarNoticeDefinition(notice.type).autoCloseMs;
+ if (!autoCloseMs) return;
+ clearTopbarNoticeTimer(notice.id);
+ const timer = setTimeout(() => {
+  removeTopbarNotice(notice.id);
+ }, autoCloseMs);
+ topbarNoticeState.timers.set(notice.id, timer);
+}
+
+function showTopbarNotice(message, options = {}) {
+ if (!supportsTopbarNotices()) return false;
+ const cleanMessage = sanitizeMessage(message);
+ if (!cleanMessage) return true;
+
+ const nextId = ++topbarNoticeState.counter;
+ const notice = {
+  id: nextId,
+  message: cleanMessage,
+  type: options.type || 'info',
+  category: options.category || 'System',
+  persistent: false,
+  createdAt: new Date().toISOString(),
+ };
+
+ const nextItems = [notice, ...topbarNoticeState.items];
+ const removedItems = nextItems.slice(8);
+ removedItems.forEach((item) => {
+  topbarNoticeState.unreadIds.delete(item.id);
+  clearTopbarNoticeTimer(item.id);
+ });
+ topbarNoticeState.items = nextItems.slice(0, 8);
+ topbarNoticeState.unreadIds.add(notice.id);
+ renderTopbarNotice();
+ scheduleTopbarNoticeRemoval(notice);
+
+ const shouldOpen = options.open === true || notice.type === 'error' || notice.type === 'warn';
+ if (shouldOpen) {
+  const shell = ensureTopbarNoticeRegion();
+  if (shell) {
+   openTopbarNoticeMenu(shell);
+  }
+ }
+ return true;
+}
+
+function setPersistentTopbarNotice(message, options = {}) {
+ if (!supportsTopbarNotices()) return;
+ const cleanMessage = sanitizeMessage(message);
+ if (!cleanMessage) {
+  clearPersistentTopbarNotice();
+  return;
+ }
+
+ const existing = topbarNoticeState.persistent;
+ topbarNoticeState.persistent = {
+  id: 'persistent',
+  message: cleanMessage,
+  type: options.type || 'warn',
+  category: options.category || 'System',
+  persistent: true,
+  createdAt: existing?.createdAt || new Date().toISOString(),
+ };
+
+ if (existing?.message !== cleanMessage || existing?.type !== topbarNoticeState.persistent.type) {
+  topbarNoticeState.unreadIds.add('persistent');
+ }
+
+ renderTopbarNotice();
+ if (options.open) {
+  const shell = ensureTopbarNoticeRegion();
+  if (shell) {
+   openTopbarNoticeMenu(shell);
+  }
+ }
+}
+
+function clearPersistentTopbarNotice() {
+ topbarNoticeState.unreadIds.delete('persistent');
+ topbarNoticeState.persistent = null;
+ renderTopbarNotice();
+}
+
 function refreshTopbarProfile() {
  const topbarRight = document.querySelector('.topbar-right');
  if (!topbarRight) return;
@@ -376,6 +685,9 @@ function initAppChrome() {
   topbarRight.innerHTML = '';
   topbarRight.appendChild(buildTopbarProfileShell());
  }
+
+ ensureTopbarNoticeRegion();
+ renderTopbarNotice();
 }
 function initVisibilityToggles() {
  document.querySelectorAll('.toggle-visibility').forEach((button) => {
@@ -675,8 +987,7 @@ function initSummaryPanel() {
    const messageTarget =
     document.getElementById('summaryMessage') || document.getElementById('slotMessage');
    if (messageTarget) {
-    messageTarget.className = 'notice';
-    messageTarget.textContent = err.message;
+    setMessage(messageTarget.id, err.message, true);
    }
   }
  };
@@ -703,10 +1014,64 @@ function initAdminTopbarClock() {
  window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
+function classifyTopbarNoticeType(message, isError = false) {
+ if (isError) return 'error';
+ const lowered = String(message || '').toLowerCase();
+ if (
+  /success|successful|successfully|updated|created|recorded|processed|verified|initiated|cancelled|complete|completed|marked|saved|redirecting|reset/.test(
+   lowered
+  )
+ ) {
+  return 'success';
+ }
+ if (/seed credentials|password now before continuing|attention/.test(lowered)) {
+  return 'warn';
+ }
+ return 'info';
+}
+
+function classifyTopbarNoticeCategory(elementId = '', message = '') {
+ const key = String(elementId || '').toLowerCase();
+ const lowered = String(message || '').toLowerCase();
+ if (/payment/.test(key) || /payment|revenue|cash|mobile money|refund/.test(lowered)) {
+  return 'Payments';
+ }
+ if (/slot/.test(key) || /slot|maintenance|occupied|available/.test(lowered)) {
+  return 'Slots';
+ }
+ if (/booking|reservation|entry|exit|occupancy/.test(key) || /booking|reservation|entry|exit/.test(lowered)) {
+  return 'Bookings';
+ }
+ if (/report|audit/.test(key)) {
+  return 'Reports';
+ }
+ if (/profile|login|register|reset|forgot|password/.test(key) || /password|account|credential/.test(lowered)) {
+  return 'System';
+ }
+ if (/user/.test(key)) {
+  return 'Users';
+ }
+ return 'System';
+}
+
 function setMessage(elementId, message, isError = false) {
  const cleanMessage = sanitizeMessage(message);
  const el = document.getElementById(elementId);
+ if (supportsTopbarNotices()) {
+  if (el) {
+   el.dataset.topbarRouted = 'true';
+   el.hidden = true;
+   el.textContent = '';
+  }
+  showTopbarNotice(cleanMessage, {
+   type: classifyTopbarNoticeType(cleanMessage, isError),
+   category: classifyTopbarNoticeCategory(elementId, cleanMessage),
+  });
+  return;
+ }
  if (!el) return;
+ delete el.dataset.topbarRouted;
+ el.hidden = false;
  el.className = isError ? 'notice' : 'success';
  el.textContent = cleanMessage;
 }
@@ -1614,7 +1979,15 @@ if (page === 'profile') {
 
  const syncPasswordRequirement = (required) => {
   if (securityAlert) {
-   securityAlert.hidden = !required;
+   securityAlert.hidden = true;
+  }
+  if (required) {
+   setPersistentTopbarNotice(
+    'You are signed in with deployment seed credentials. Update your password now before continuing.',
+    { type: 'warn', category: 'System' }
+   );
+  } else {
+   clearPersistentTopbarNotice();
   }
   if (dashboardLink) {
    dashboardLink.toggleAttribute('aria-disabled', required);
@@ -4384,6 +4757,7 @@ function sanitizeMessage(message) {
  }
  return text;
 }
+
 
 
 
