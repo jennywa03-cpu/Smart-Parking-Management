@@ -26,12 +26,18 @@ Important note:
 - Optional Brevo, Twilio, and M-Pesa variables from `backend/.env.example`
 
 ## Database variables
-The backend supports Railway's MySQL reference variables directly:
+The backend supports Railway MySQL reference variables directly:
 - `MYSQLHOST`
 - `MYSQLPORT`
 - `MYSQLUSER`
 - `MYSQLPASSWORD`
 - `MYSQLDATABASE`
+- `MYSQL_URL`
+
+Important:
+- Add these as reference variables from the Railway MySQL service to the app service.
+- If they are missing, the bootstrap now fails with a clear message instead of a blank error.
+- Optional retry tuning is available through `RAILWAY_BOOTSTRAP_RETRIES` and `RAILWAY_BOOTSTRAP_RETRY_MS`.
 
 ## What Railway runs
 - Build: `npm run railway:build`

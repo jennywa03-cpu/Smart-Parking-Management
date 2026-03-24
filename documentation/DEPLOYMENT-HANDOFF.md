@@ -21,7 +21,7 @@
 1. Create a Railway project.
 2. Add a Railway MySQL service to the project.
 3. Deploy this repository as a single Railway app service from the repo root. The root `railway.toml` handles the build, pre-deploy bootstrap, start command, and healthcheck.
-4. Set these Railway app variables:
+4. Add Railway MySQL reference variables from the MySQL service to the app service, or expose `MYSQL_URL`. Then set these Railway app variables:
    - `JWT_SECRET`
    - `PAYMENT_WEBHOOK_SECRET`
    - `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`

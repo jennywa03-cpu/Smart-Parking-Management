@@ -2,22 +2,11 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
+const { getDatabaseConfig, getDatabaseConfigSummary } = require('../src/config/databaseConfig');
 
 const IGNORABLE_ERRORS = new Set([1050, 1060, 1061, 1826]);
-
-function readEnv(name, fallback) {
-  return process.env[name] || fallback;
-}
-
-function createConfig() {
-  return {
-    host: readEnv('DB_HOST', readEnv('MYSQLHOST', 'localhost')),
-    user: readEnv('DB_USER', readEnv('MYSQLUSER', 'root')),
-    password: readEnv('DB_PASSWORD', readEnv('MYSQLPASSWORD', '')),
-    database: readEnv('DB_NAME', readEnv('MYSQLDATABASE', 'Park_db')),
-    port: Number(readEnv('DB_PORT', readEnv('MYSQLPORT', 3306))),
-  };
-}
+const MAX_RETRIES = Number(process.env.RAILWAY_BOOTSTRAP_RETRIES || 20);
+const RETRY_DELAY_MS = Number(process.env.RAILWAY_BOOTSTRAP_RETRY_MS || 3000);
 
 function sanitizeSql(sql) {
   return sql
@@ -31,6 +20,56 @@ function splitStatements(sql) {
     .split(/;\s*(?:\r?\n|$)/)
     .map((statement) => statement.trim())
     .filter(Boolean);
+}
+
+function formatError(err) {
+  return {
+    message: err?.message || String(err),
+    code: err?.code || null,
+    errno: err?.errno || null,
+    address: err?.address || null,
+    port: err?.port || null,
+  };
+}
+
+async function sleep(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function connectWithRetry() {
+  const config = getDatabaseConfig();
+  const summary = getDatabaseConfigSummary(config);
+
+  if (!summary.hasUrl && !summary.envHints.DB_HOST && !summary.envHints.MYSQLHOST) {
+    throw new Error(
+      'No database connection settings found. On Railway, add reference variables from the MySQL service (MYSQLHOST/MYSQLUSER/MYSQLPASSWORD/MYSQLDATABASE or MYSQL_URL) to the app service.'
+    );
+  }
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      // eslint-disable-next-line no-console
+      console.log(`Bootstrap DB connection attempt ${attempt}/${MAX_RETRIES}`, summary);
+      return await mysql.createConnection({
+        host: config.host,
+        user: config.user,
+        password: config.password,
+        database: config.database,
+        port: Number(config.port),
+      });
+    } catch (err) {
+      lastError = err;
+      const details = formatError(err);
+      // eslint-disable-next-line no-console
+      console.error('Database connection attempt failed:', details);
+      if (attempt < MAX_RETRIES) {
+        await sleep(RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 async function runSqlFile(connection, filePath) {
@@ -53,7 +92,7 @@ async function runSqlFile(connection, filePath) {
 }
 
 async function main() {
-  const connection = await mysql.createConnection(createConfig());
+  const connection = await connectWithRetry();
   try {
     const schemaPath = path.resolve(__dirname, '..', '..', 'database', 'schema.sql');
     const seedPath = path.resolve(__dirname, '..', '..', 'database', 'seed.sql');
@@ -81,6 +120,10 @@ async function main() {
 
 main().catch((err) => {
   // eslint-disable-next-line no-console
-  console.error('Railway database bootstrap failed:', err.message);
+  console.error('Railway database bootstrap failed:', formatError(err));
+  if (err?.stack) {
+    // eslint-disable-next-line no-console
+    console.error(err.stack);
+  }
   process.exit(1);
 });

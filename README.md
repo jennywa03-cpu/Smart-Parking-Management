@@ -71,7 +71,7 @@ Railway setup:
    - `RESET_URL_BASE` to `https://your-app-domain/reset-password.html`
    - notification/payment variables as needed
 5. The backend now serves the frontend files directly, so the browser UI and API can share one Railway domain.
-6. Railway MySQL variables are supported directly: `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQLDATABASE`.
+6. Add Railway MySQL reference variables to the app service. The backend supports `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`, and `MYSQL_URL` directly.
 7. The Railway pre-deploy step runs `npm run railway:bootstrap` to apply schema, seed data, and migrations automatically.
 
 Important note:
