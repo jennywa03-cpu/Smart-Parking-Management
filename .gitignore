@@ -11,3 +11,4 @@ frontend/test-results/
 submission/Smart_Parking_Management_Package/
 submission/Smart_Parking_Management_Package.zip
 *.log
+*.err

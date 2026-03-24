@@ -11,9 +11,8 @@ This project is ready for final submission and presentation packaging.
 - Role walkthrough verification in `documentation/ROLE-WALKTHROUGH.md`
 
 ## Final Presenter Notes
-- Use the default admin account for the main demonstration:
-  - Email: `janemwangi@gmail.com`
-  - Password: `admin@123`
+- Use the admin account configured in `backend/.env` for the main demonstration.
+- Confirm the first successful login redirects to the forced password-change flow.
 - Show the alphanumeric public identifiers:
   - Example user code: `USR-...`
   - Example slot code: `SLT-...`

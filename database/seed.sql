@@ -1,9 +1,7 @@
 USE Park_db;
 
-INSERT INTO users (public_user_id, name, email, phone, password_hash, user_type, status)
-VALUES
-  ('USR-ADMIN01', 'Jane Mwangi', 'janemwangi@gmail.com', '0700000000', '$2a$10$HLP7JumjzwpDesjMeCv5DOfofzN6IyA2JYNnsD0t7aEd97.zsfxx2', 'admin', 'active'),
-  ('USR-ATTD01', 'Front Desk', 'attendant@park.local', '0700000001', '$2a$10$HLP7JumjzwpDesjMeCv5DOfofzN6IyA2JYNnsD0t7aEd97.zsfxx2', 'attendant', 'active');
+-- Admin bootstrap is handled from backend/.env at server startup.
+-- Set ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD locally; do not commit live credentials.
 
 INSERT INTO parking_slots (public_slot_id, slot_number, location, hourly_rate, status)
 VALUES
@@ -31,4 +29,3 @@ VALUES
   ('SLT-C006', 'C-06', 'Zone C', 50.00, 'available'),
   ('SLT-C007', 'C-07', 'Zone C', 50.00, 'available'),
   ('SLT-C008', 'C-08', 'Zone C', 50.00, 'available');
-

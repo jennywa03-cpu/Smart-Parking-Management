@@ -65,6 +65,10 @@ jobs:
             echo "CORS_ALLOW_ALL=true"
             echo "SHOW_RESET_TOKEN=true"
             echo "EMAIL_ENABLED=false"
+            echo "ADMIN_SEED_NAME=CI Administrator"
+            echo "ADMIN_SEED_EMAIL=ci.admin@example.invalid"
+            echo "ADMIN_SEED_PASSWORD=ChangeMe@123"
+            echo "ADMIN_SEED_FORCE_PASSWORD_CHANGE=true"
           } >> backend/.env
 
       - name: Import database schema

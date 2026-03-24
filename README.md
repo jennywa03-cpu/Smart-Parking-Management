@@ -41,16 +41,18 @@ npm run dev
 Default frontend URL:
 - `http://localhost:5500`
 
-## Default Local Admin
-- Email: `janemwangi@gmail.com`
-- Password: `admin@123`
+## Deployment Admin Bootstrap
+- Set `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, and `ADMIN_SEED_PASSWORD` in your local `backend/.env`.
+- The backend creates or refreshes that admin account only until the first successful password change.
+- After the first successful login, the user is forced to set a new password and the seed password is no longer reapplied.
+- Do not commit live admin credentials to GitHub; keep them only in `backend/.env`.
 
 ## Recommended Local Run Order
 1. Start MySQL in XAMPP.
 2. Start the backend from `backend/`.
 3. Start the frontend from `frontend/`.
 4. Open `http://localhost:5500`.
-5. Sign in with the local admin account.
+5. Sign in with the admin credentials configured in `backend/.env`, then change the password immediately on first successful login.
 
 ## Verification
 

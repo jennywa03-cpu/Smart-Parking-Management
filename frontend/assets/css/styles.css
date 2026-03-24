@@ -7142,3 +7142,21 @@ body[data-page='occupancy'] .slot-tile.status-maintenance::before {
   }
 }
 
+
+.notice-warn {
+  background: #fff4e8;
+  border-color: #ffd4b4;
+  color: #8a4f1d;
+}
+
+.profile-password-block {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e4ecef;
+  display: grid;
+  gap: 12px;
+}
+
+.profile-password-grid {
+  margin-top: 4px;
+}

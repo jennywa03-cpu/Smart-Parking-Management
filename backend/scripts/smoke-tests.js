@@ -3,9 +3,9 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 const API_BASE = process.env.API_BASE || 'http://localhost:4000';
-const ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL || 'janemwangi@gmail.com';
-const ADMIN_PASSWORD = process.env.SMOKE_ADMIN_PASSWORD || 'admin@123';
-const ATTENDANT_EMAIL = process.env.SMOKE_ATTENDANT_EMAIL || 'smoke.attendant@park.local';
+const ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL;
+const ADMIN_PASSWORD = process.env.SMOKE_ADMIN_PASSWORD || process.env.ADMIN_SEED_PASSWORD;
+const ATTENDANT_EMAIL = process.env.SMOKE_ATTENDANT_EMAIL || `automation.attendant.${Date.now()}@example.invalid`; 
 const ATTENDANT_PASSWORD = process.env.SMOKE_ATTENDANT_PASSWORD || 'Attendant@123';
 
 async function api(path, options = {}) {
@@ -51,7 +51,7 @@ async function ensureAttendant(adminToken) {
         method: 'POST',
         headers: { Authorization: `Bearer ${adminToken}` },
         body: JSON.stringify({
-          name: 'Smoke Attendant',
+          name: 'Automation Attendant',
           email: ATTENDANT_EMAIL,
           user_type: 'attendant',
           password: ATTENDANT_PASSWORD,
@@ -74,8 +74,8 @@ async function ensureAvailableSlots(adminToken, minimum) {
       method: 'POST',
       headers: { Authorization: `Bearer ${adminToken}` },
       body: JSON.stringify({
-        slot_number: `SMOKE-${Date.now()}-${i}`,
-        location: 'Smoke Test Zone',
+        slot_number: `CHK-${Date.now()}-${i}`,
+        location: 'Verification Zone',
         hourly_rate: 100,
       }),
     });
@@ -108,6 +108,10 @@ async function backdateBooking(connection, bookingId, secondsAgo) {
 async function run() {
   console.log('Running API smoke tests...');
 
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    throw new Error('Set ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD, or provide SMOKE_ADMIN_EMAIL and SMOKE_ADMIN_PASSWORD.');
+  }
+
   await api('/health');
   await api('/health/db');
 
@@ -125,14 +129,14 @@ async function run() {
   assertPublicCode(slotB.slot_code, 'SLT', 'Available slots should expose alphanumeric slot codes');
 
   const stamp = Date.now();
-  const driverEmail = `smoke_${stamp}@park.local`;
+  const driverEmail = `automation_${stamp}@example.invalid`;
   const driverPassword = 'Driver@123';
   const vehicleNumber = `KSM ${String(stamp).slice(-4)}X`;
 
   await api('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({
-      name: 'Smoke Driver',
+      name: 'Automation Driver',
       email: driverEmail,
       phone: '0712345678',
       vehicle_number: vehicleNumber,
@@ -161,7 +165,7 @@ async function run() {
   await api(`/api/admin/slots/${slotA.slot_code}`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${adminToken}` },
-    body: JSON.stringify({ location: slotA.location || 'Smoke Test Zone' }),
+    body: JSON.stringify({ location: slotA.location || 'Verification Zone' }),
   });
 
   await api(`/api/admin/slots/${slotA.slot_code}/status`, {
@@ -257,7 +261,7 @@ async function run() {
     headers: { Authorization: `Bearer ${adminToken}` },
     body: JSON.stringify({
       status: 'paid',
-      note: 'Smoke test payment confirmation',
+      note: 'Verification payment confirmation',
     }),
   });
   assert(paymentConfirmation.payment_status === 'paid', 'Admin payment confirmation should mark payment as paid');
@@ -326,4 +330,5 @@ run().catch((err) => {
   console.error('Smoke tests failed:', err.message);
   process.exit(1);
 });
+
 

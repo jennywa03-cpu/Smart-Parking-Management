@@ -10,13 +10,13 @@ Use this checklist in a real browser after starting MySQL, the backend on `http:
 - Confirm the login card is centered and readable on desktop
 - Confirm email and password inputs align properly
 - Confirm the password eye icon stays inside the input field
-- Sign in with `janemwangi@gmail.com` / `admin@123`
+- Sign in with the admin credentials configured in `backend/.env`, then confirm the forced password-change prompt appears on the first successful login.
 - Confirm admin dashboard opens without fetch errors
 
 ### Register - `frontend/register.html`
 - Open the page from the login screen
 - Confirm the form spacing matches the login page quality
-- Confirm phone, vehicle, and password reveal buttons stay inside the input fields
+- Confirm the password reveal buttons stay inside password input fields and no reveal icon appears on non-password inputs.
 - Register a test driver account
 - Confirm success feedback appears
 

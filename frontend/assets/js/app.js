@@ -149,6 +149,14 @@ function roleHome(role) {
  if (role === 'attendant') return 'attendant.html';
  return 'driver.html';
 }
+
+function mustChangePassword(auth = getAuth()) {
+ return Boolean(auth?.user?.must_change_password);
+}
+
+function forcedPasswordDestination() {
+ return 'profile.html?forcePasswordChange=1';
+}
 function getUserDisplay(user) {
  const fullName = user?.name?.trim() || 'User';
  const [firstName = 'User'] = fullName.split(/\s+/);
@@ -428,13 +436,23 @@ function guardPage() {
    window.location.href = roleHome(auth.user?.role || 'driver');
    return;
   }
+  if (mustChangePassword(auth) && page !== 'profile') {
+   window.location.href = forcedPasswordDestination();
+   return;
+  }
  } else if (requireAuthOnly) {
   if (!auth?.token) {
    window.location.href = 'index.html';
    return;
   }
+  if (mustChangePassword(auth) && page !== 'profile') {
+   window.location.href = forcedPasswordDestination();
+   return;
+  }
  } else if ((page === 'login' || page === 'register') && auth?.token) {
-  window.location.href = roleHome(auth.user?.role || 'driver');
+  window.location.href = mustChangePassword(auth)
+   ? forcedPasswordDestination()
+   : roleHome(auth.user?.role || 'driver');
  }
 }
 
@@ -1402,14 +1420,20 @@ if (page === 'login') {
    if (data?.token && data?.user) {
     saveAuth(data.token, data.user);
    }
-   setMessage('loginMessage', 'Login successful. Redirecting...');
    const role = data.user?.role;
-   const destination =
-    role === 'admin'
-     ? 'admin.html'
-     : role === 'attendant'
-     ? 'attendant.html'
-     : 'driver.html';
+   const destination = data.user?.must_change_password
+    ? forcedPasswordDestination()
+    : role === 'admin'
+    ? 'admin.html'
+    : role === 'attendant'
+    ? 'attendant.html'
+    : 'driver.html';
+   setMessage(
+    'loginMessage',
+    data.user?.must_change_password
+     ? 'Login successful. Update your seeded password to continue.'
+     : 'Login successful. Redirecting...'
+   );
    setTimeout(() => {
     window.location.href = destination;
    }, 600);
@@ -1532,6 +1556,8 @@ if (page === 'reset-password') {
 
 if (page === 'profile') {
  const form = document.getElementById('profileForm');
+ const passwordForm = document.getElementById('profilePasswordForm');
+ const securityAlert = document.getElementById('profileSecurityAlert');
  const dashboardLink = document.getElementById('profileDashboardLink');
  const heroDashboardLink = document.getElementById('profileHeroDashboardLink');
  const vehicleInput = document.getElementById('profileVehicle');
@@ -1586,7 +1612,17 @@ if (page === 'profile') {
   }
  };
 
+ const syncPasswordRequirement = (required) => {
+  if (securityAlert) {
+   securityAlert.hidden = !required;
+  }
+  if (dashboardLink) {
+   dashboardLink.toggleAttribute('aria-disabled', required);
+  }
+ };
+
  applyRolePresentation(auth?.user?.role);
+ syncPasswordRequirement(mustChangePassword(auth));
 
  async function loadProfile() {
   try {
@@ -1596,6 +1632,12 @@ if (page === 'profile') {
    form.phone.value = data.phone || '';
    form.vehicle_number.value = data.vehicle_number || '';
    applyRolePresentation(data.user_type || auth?.user?.role);
+   updateAuthUser({
+    name: data.name,
+    email: data.email,
+    must_change_password: Boolean(data.must_change_password),
+   });
+   syncPasswordRequirement(Boolean(data.must_change_password));
    if (vehicleInput) {
     const isDriver = data.user_type === 'driver';
     vehicleInput.disabled = !isDriver;
@@ -1627,10 +1669,51 @@ if (page === 'profile') {
    updateAuthUser({
     name: updated.name,
     email: updated.email,
+    must_change_password: Boolean(updated.must_change_password),
    });
    refreshTopbarProfile();
   } catch (err) {
    setMessage('profileMessage', err.message, true);
+  }
+ });
+
+ passwordForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const currentPassword = passwordForm.current_password.value.trim();
+  const newPassword = passwordForm.new_password.value.trim();
+  const confirmPassword = passwordForm.confirm_password.value.trim();
+  const passwordError = validatePasswordStrength(newPassword);
+
+  if (passwordError) {
+   setMessage('profilePasswordMessage', passwordError, true);
+   return;
+  }
+  if (newPassword !== confirmPassword) {
+   setMessage('profilePasswordMessage', 'New passwords do not match.', true);
+   return;
+  }
+
+  try {
+   const result = await api('/api/users/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+     current_password: currentPassword,
+     new_password: newPassword,
+    }),
+   });
+   passwordForm.reset();
+   setMessage('profilePasswordMessage', result.message || 'Password updated successfully.');
+   updateAuthUser({ must_change_password: false });
+   syncPasswordRequirement(false);
+   refreshTopbarProfile();
+
+   if (new URLSearchParams(window.location.search).get('forcePasswordChange') === '1') {
+    setTimeout(() => {
+     window.location.href = roleHome(getAuth()?.user?.role || 'driver');
+    }, 900);
+   }
+  } catch (err) {
+   setMessage('profilePasswordMessage', err.message, true);
   }
  });
 }

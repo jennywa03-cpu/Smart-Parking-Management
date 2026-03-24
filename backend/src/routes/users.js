@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const validate = require('../middleware/validate');
 const { requireAuth } = require('../middleware/auth');
 const { expirePendingSelections, resyncAllSlotStatuses } = require('../services/bookingLifecycle');
+const { checkPasswordStrength } = require('../utils/password');
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.use(async (req, res, next) => {
 router.get('/me', async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      `SELECT user_id, public_user_id AS user_code, name, email, phone, user_type, vehicle_number, status, created_at
+      `SELECT user_id, public_user_id AS user_code, name, email, phone, user_type, vehicle_number, status, must_change_password, created_at
        FROM users WHERE user_id = ? LIMIT 1`,
       [req.user.id]
     );
@@ -72,11 +73,61 @@ router.patch(
       await pool.query(`UPDATE users SET ${fields.join(', ')} WHERE user_id = ?`, values);
 
       const [rows] = await pool.query(
-        `SELECT user_id, public_user_id AS user_code, name, email, phone, user_type, vehicle_number, status, created_at
+        `SELECT user_id, public_user_id AS user_code, name, email, phone, user_type, vehicle_number, status, must_change_password, created_at
          FROM users WHERE user_id = ? LIMIT 1`,
         [req.user.id]
       );
       return res.json(rows[0]);
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.post(
+  '/change-password',
+  [
+    body('current_password').isLength({ min: 8, max: 120 }),
+    body('new_password')
+      .isLength({ min: 8, max: 120 })
+      .custom((value) => {
+        const result = checkPasswordStrength(value);
+        if (!result.ok) {
+          throw new Error(result.message);
+        }
+        return true;
+      }),
+  ],
+  validate,
+  async (req, res, next) => {
+    try {
+      const { current_password, new_password } = req.body;
+      if (current_password === new_password) {
+        return res.status(400).json({ message: 'New password must be different from the current password.' });
+      }
+
+      const [[user]] = await pool.query(
+        'SELECT user_id, password_hash FROM users WHERE user_id = ? LIMIT 1',
+        [req.user.id]
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const bcrypt = require('bcryptjs');
+      const matches = await bcrypt.compare(current_password, user.password_hash);
+      if (!matches) {
+        return res.status(401).json({ message: 'Current password is incorrect.' });
+      }
+
+      const passwordHash = await bcrypt.hash(new_password, 10);
+      await pool.query(
+        'UPDATE users SET password_hash = ?, must_change_password = 0, password_changed_at = NOW(), failed_login_attempts = 0, lock_until = NULL WHERE user_id = ?',
+        [passwordHash, req.user.id]
+      );
+
+      return res.json({ message: 'Password updated successfully.', must_change_password: false });
     } catch (err) {
       return next(err);
     }
@@ -170,6 +221,7 @@ router.get('/summary', async (req, res, next) => {
 });
 
 module.exports = router;
+
 
 
 

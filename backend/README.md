@@ -12,9 +12,11 @@ npm install
 npm run dev
 ```
 
-## Default Local Admin
-- Email: `janemwangi@gmail.com`
-- Password: `admin@123`
+## Deployment Admin Bootstrap
+- Set `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, and `ADMIN_SEED_PASSWORD` in your local `.env`.
+- The backend creates or refreshes that admin account only until the first successful password change.
+- After the first successful login, the user must set a new password.
+- Do not store live deployment credentials in tracked files.
 
 ## Core Endpoints
 - `POST /api/auth/login`

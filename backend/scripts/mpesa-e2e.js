@@ -16,7 +16,7 @@ async function api(path, options = {}) {
 }
 
 async function run() {
-  const email = `mpesa_${Date.now()}@park.local`;
+  const email = `mpesa_check_${Date.now()}@example.invalid`;
   const password = 'Driver@123';
 
   await api('/api/auth/register', {

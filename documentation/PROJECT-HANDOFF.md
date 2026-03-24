@@ -30,9 +30,8 @@ Smart Parking Management System
 - Database: `Park_db`
 - Backend URL: `http://localhost:4000`
 - Frontend URL: `http://localhost:5500`
-- Local admin:
-  - Email: `janemwangi@gmail.com`
-  - Password: `admin@123`
+- Local admin: configured through `backend/.env` using `ADMIN_SEED_NAME`, `ADMIN_SEED_EMAIL`, and `ADMIN_SEED_PASSWORD`
+- First-login password change: enforced automatically until the seeded admin sets a new password
 
 ## Files To Review During Handoff
 - `README.md`

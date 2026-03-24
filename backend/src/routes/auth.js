@@ -44,8 +44,8 @@ router.post(
       const passwordHash = await bcrypt.hash(password, 10);
       const publicUserId = await generateUniquePublicId(pool, 'users', 'public_user_id', USER_PREFIX);
       const [result] = await pool.query(
-        `INSERT INTO users (public_user_id, name, email, phone, password_hash, user_type, vehicle_number)
-         VALUES (?, ?, ?, ?, ?, 'driver', ?)`,
+        `INSERT INTO users (public_user_id, name, email, phone, password_hash, user_type, vehicle_number, password_changed_at)
+         VALUES (?, ?, ?, ?, ?, 'driver', ?, NOW())`,
         [publicUserId, name, email, phone || null, passwordHash, vehicle_number || null]
       );
 
@@ -65,7 +65,7 @@ router.post(
       const { email, password } = req.body;
       const [rows] = await pool.query(
         `SELECT user_id, public_user_id, name, email, password_hash, user_type, status,
-                failed_login_attempts, lock_until
+                must_change_password, failed_login_attempts, lock_until
          FROM users WHERE email = ? LIMIT 1`,
         [email]
       );
@@ -122,6 +122,7 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.user_type,
+          must_change_password: Boolean(user.must_change_password),
         },
       });
     } catch (err) {
@@ -248,7 +249,7 @@ router.post(
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
-      await pool.query('UPDATE users SET password_hash = ? WHERE user_id = ?', [
+      await pool.query('UPDATE users SET password_hash = ?, must_change_password = 0, password_changed_at = NOW() WHERE user_id = ?', [
         passwordHash,
         reset.user_id,
       ]);
@@ -264,5 +265,6 @@ router.post(
 );
 
 module.exports = router;
+
 
 
