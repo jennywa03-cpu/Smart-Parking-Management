@@ -1,4 +1,4 @@
-const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:4000';
+﻿const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:4000';
 const page = document.body.dataset.page;
 const requiredRole = document.body.dataset.role;
 const requireAuthOnly = document.body.dataset.auth === 'true';
@@ -11,6 +11,16 @@ const topbarNoticeState = {
  counter: 0,
  unreadIds: new Set(),
  timers: new Map(),
+};
+const topbarToastState = {
+ items: [],
+ counter: 0,
+ timers: new Map(),
+};
+const notificationFeedState = {
+ initialized: false,
+ snapshot: null,
+ intervalId: null,
 };
 
 function padDatePart(value) {
@@ -387,6 +397,85 @@ function getTopbarNoticeDefinition(type = 'info') {
  return definitions[type] || definitions.info;
 }
 
+function getTopbarToastDuration(type = 'info') {
+ if (type === 'error' || type === 'warn') return 950;
+ return 800;
+}
+
+function ensureTopbarToastRegion() {
+ let region = document.querySelector('[data-topbar-toast-stack]');
+ if (region) return region;
+
+ region = document.createElement('div');
+ region.className = 'topbar-toast-stack';
+ region.setAttribute('data-topbar-toast-stack', 'true');
+ document.body.appendChild(region);
+ return region;
+}
+
+function renderTopbarToasts() {
+ const region = ensureTopbarToastRegion();
+ if (!region) return;
+
+ if (!topbarToastState.items.length) {
+  region.innerHTML = '';
+  region.hidden = true;
+  return;
+ }
+
+ region.hidden = false;
+ region.innerHTML = topbarToastState.items
+  .map((item, index) => {
+   const definition = getTopbarNoticeDefinition(item.type);
+   return (
+    '<article class="topbar-toast is-' + item.type + '" style="--toast-index:' + index + '">' +
+    '<span class="topbar-toast-icon" aria-hidden="true">' + definition.icon + '</span>' +
+    '<div class="topbar-toast-copy">' +
+    '<div class="topbar-toast-meta"><span class="topbar-toast-label">' + definition.label + '</span><span class="topbar-toast-category">' + escapeHtml(item.category || 'System') + '</span></div>' +
+    '<strong>' + escapeHtml(item.message) + '</strong>' +
+    '</div>' +
+    '</article>'
+   );
+  })
+  .join('');
+}
+
+function queueTopbarToastPreview(notice, onComplete) {
+ const toast = {
+  id: 'toast-' + (++topbarToastState.counter),
+  type: notice.type,
+  category: notice.category,
+  message: notice.message,
+ };
+
+ topbarToastState.items = [toast, ...topbarToastState.items].slice(0, 3);
+ renderTopbarToasts();
+
+ const duration = getTopbarToastDuration(notice.type);
+ const timer = setTimeout(() => {
+  topbarToastState.items = topbarToastState.items.filter((item) => item.id !== toast.id);
+  topbarToastState.timers.delete(toast.id);
+  renderTopbarToasts();
+  if (typeof onComplete === 'function') {
+   onComplete();
+  }
+ }, duration);
+
+ topbarToastState.timers.set(toast.id, timer);
+}
+
+function createTopbarNoticeRecord(message, options = {}) {
+ return {
+  id: options.id || 'local-' + (++topbarNoticeState.counter),
+  message,
+  type: options.type || 'info',
+  category: options.category || 'System',
+  persistent: Boolean(options.persistent),
+  createdAt: options.createdAt || new Date().toISOString(),
+  source: options.source || 'local',
+ };
+}
+
 function getTopbarNoticeItems() {
  const items = [];
  if (topbarNoticeState.persistent?.message) {
@@ -581,29 +670,18 @@ function scheduleTopbarNoticeRemoval(notice) {
  topbarNoticeState.timers.set(notice.id, timer);
 }
 
-function showTopbarNotice(message, options = {}) {
- if (!supportsTopbarNotices()) return false;
- const cleanMessage = sanitizeMessage(message);
- if (!cleanMessage) return true;
-
- const nextId = ++topbarNoticeState.counter;
- const notice = {
-  id: nextId,
-  message: cleanMessage,
-  type: options.type || 'info',
-  category: options.category || 'System',
-  persistent: false,
-  createdAt: new Date().toISOString(),
- };
-
+function commitTopbarNotice(notice, options = {}) {
  const nextItems = [notice, ...topbarNoticeState.items];
  const removedItems = nextItems.slice(8);
  removedItems.forEach((item) => {
   topbarNoticeState.unreadIds.delete(item.id);
   clearTopbarNoticeTimer(item.id);
  });
+
  topbarNoticeState.items = nextItems.slice(0, 8);
- topbarNoticeState.unreadIds.add(notice.id);
+ if (options.markUnread !== false) {
+  topbarNoticeState.unreadIds.add(notice.id);
+ }
  renderTopbarNotice();
  scheduleTopbarNoticeRemoval(notice);
 
@@ -614,6 +692,27 @@ function showTopbarNotice(message, options = {}) {
    openTopbarNoticeMenu(shell);
   }
  }
+}
+
+function showTopbarNotice(message, options = {}) {
+ if (!supportsTopbarNotices()) return false;
+ const cleanMessage = sanitizeMessage(message);
+ if (!cleanMessage) return true;
+
+ const notice = createTopbarNoticeRecord(cleanMessage, {
+  type: options.type,
+  category: options.category,
+  createdAt: options.createdAt,
+  source: options.source || 'local',
+ });
+
+ const complete = () => commitTopbarNotice(notice, options);
+ if (options.preview === false) {
+  complete();
+  return true;
+ }
+
+ queueTopbarToastPreview(notice, complete);
  return true;
 }
 
@@ -1074,6 +1173,176 @@ function setMessage(elementId, message, isError = false) {
  el.hidden = false;
  el.className = isError ? 'notice' : 'success';
  el.textContent = cleanMessage;
+}
+
+function fetchNotificationFeedSnapshot() {
+ const auth = getAuth();
+ if (!auth?.token || !supportsTopbarNotices()) {
+  return Promise.resolve(null);
+ }
+
+ const role = auth.user?.role || requiredRole || 'driver';
+ if (role === 'admin') {
+  return Promise.all([
+   api('/api/users/summary'),
+   api('/api/admin/reports/schedule'),
+   api('/api/admin/audit-logs?limit=1'),
+  ]).then(([summary, schedule, audits]) => ({
+   role,
+   activeBookings: Number(summary?.active_bookings || 0),
+   totalRevenue: Number(summary?.total_revenue || 0),
+   reportLastRun: schedule?.last_run_at || '',
+   reportNextRun: schedule?.next_run_at || '',
+   latestAuditId: audits?.[0]?.audit_id || null,
+   latestAuditEntity: audits?.[0]?.entity_type || '',
+  }));
+ }
+
+ if (role === 'attendant') {
+  return Promise.all([
+   api('/api/users/summary'),
+   api('/api/attendant/slots'),
+  ]).then(([summary, slots]) => ({
+   role,
+   pendingReservations: Number(summary?.pending_reservations || 0),
+   occupiedSlots: Number(summary?.occupied_slots || 0),
+   maintenanceSlots: Array.isArray(slots)
+    ? slots.filter((slot) => normalizeStatus(slot.status) === 'maintenance').length
+    : 0,
+  }));
+ }
+
+ return Promise.all([
+  api('/api/users/summary'),
+  api('/api/driver/bookings'),
+ ]).then(([summary, bookings]) => {
+  const list = Array.isArray(bookings) ? bookings : [];
+  const latestPending = list.find((booking) => String(booking.booking_status || '').toLowerCase() === 'pending');
+  const latestConfirmed = list.find((booking) => String(booking.booking_status || '').toLowerCase() === 'confirmed');
+  return {
+   role,
+   availableSlots: Number(summary?.available_slots || 0),
+   activeBookings: Number(summary?.my_active_bookings || 0),
+   latestPendingId: latestPending?.booking_id || null,
+   latestPendingSlot: latestPending?.slot_number || '',
+   latestConfirmedId: latestConfirmed?.booking_id || null,
+   latestConfirmedSlot: latestConfirmed?.slot_number || '',
+  };
+ });
+}
+
+function emitNotificationFeedChanges(current, previous) {
+ if (!current || !previous || current.role !== previous.role) return;
+
+ if (current.role === 'admin') {
+  if (current.activeBookings !== previous.activeBookings) {
+   showTopbarNotice('Active bookings now stand at ' + current.activeBookings + '.', {
+    type: 'info',
+    category: 'Bookings',
+    source: 'feed',
+   });
+  }
+  if (current.totalRevenue > previous.totalRevenue) {
+   showTopbarNotice('Revenue moved to ' + formatCurrency(current.totalRevenue) + '.', {
+    type: 'success',
+    category: 'Payments',
+    source: 'feed',
+   });
+  }
+  if (current.reportLastRun && current.reportLastRun !== previous.reportLastRun) {
+   showTopbarNotice('Scheduled reports completed another export run.', {
+    type: 'success',
+    category: 'Reports',
+    source: 'feed',
+   });
+  }
+  if (current.latestAuditId && current.latestAuditId !== previous.latestAuditId) {
+   showTopbarNotice('New ' + formatLabel(current.latestAuditEntity || 'system') + ' audit activity was recorded.', {
+    type: 'info',
+    category: 'System',
+    source: 'feed',
+   });
+  }
+  return;
+ }
+
+ if (current.role === 'attendant') {
+  if (current.pendingReservations !== previous.pendingReservations) {
+   showTopbarNotice(
+    current.pendingReservations + ' reservation' + (current.pendingReservations === 1 ? '' : 's') + ' are waiting for gate action.',
+    { type: 'info', category: 'Bookings', source: 'feed' }
+   );
+  }
+  if (current.occupiedSlots !== previous.occupiedSlots) {
+   showTopbarNotice(
+    current.occupiedSlots + ' slot' + (current.occupiedSlots === 1 ? '' : 's') + ' are currently occupied.',
+    { type: 'info', category: 'Slots', source: 'feed' }
+   );
+  }
+  if (current.maintenanceSlots !== previous.maintenanceSlots) {
+   showTopbarNotice(
+    current.maintenanceSlots + ' slot' + (current.maintenanceSlots === 1 ? '' : 's') + ' are marked for maintenance.',
+    { type: current.maintenanceSlots ? 'warn' : 'success', category: 'Slots', source: 'feed' }
+   );
+  }
+  return;
+ }
+
+ if (current.activeBookings !== previous.activeBookings) {
+  showTopbarNotice(
+   'You now have ' + current.activeBookings + ' active booking' + (current.activeBookings === 1 ? '' : 's') + '.',
+   { type: 'info', category: 'Bookings', source: 'feed' }
+  );
+ }
+ if (current.availableSlots !== previous.availableSlots) {
+  showTopbarNotice(
+   current.availableSlots + ' slot' + (current.availableSlots === 1 ? '' : 's') + ' are currently available to book.',
+   { type: 'info', category: 'Slots', source: 'feed' }
+  );
+ }
+ if (current.latestPendingId && current.latestPendingId !== previous.latestPendingId) {
+  showTopbarNotice('Complete payment for slot ' + (current.latestPendingSlot || '-') + ' before the hold expires.', {
+   type: 'warn',
+   category: 'Payments',
+   source: 'feed',
+  });
+ }
+ if (current.latestConfirmedId && current.latestConfirmedId !== previous.latestConfirmedId) {
+  showTopbarNotice('Booking for slot ' + (current.latestConfirmedSlot || '-') + ' is confirmed.', {
+   type: 'success',
+   category: 'Bookings',
+   source: 'feed',
+  });
+ }
+}
+
+function startNotificationFeedSync() {
+ if (!supportsTopbarNotices() || notificationFeedState.intervalId) return;
+
+ const sync = async () => {
+  try {
+   const snapshot = await fetchNotificationFeedSnapshot();
+   if (!snapshot) return;
+   if (notificationFeedState.initialized) {
+    emitNotificationFeedChanges(snapshot, notificationFeedState.snapshot);
+   }
+   notificationFeedState.snapshot = snapshot;
+   notificationFeedState.initialized = true;
+  } catch (err) {
+   // Keep the bell resilient even if the backend feed temporarily fails.
+  }
+ };
+
+ sync();
+ notificationFeedState.intervalId = setInterval(sync, 60000);
+ window.addEventListener('beforeunload', () => {
+  if (notificationFeedState.intervalId) {
+   clearInterval(notificationFeedState.intervalId);
+   notificationFeedState.intervalId = null;
+  }
+  topbarToastState.timers.forEach((timer) => clearTimeout(timer));
+  topbarToastState.timers.clear();
+ });
 }
 
 function saveUiFlash(key, payload) {
@@ -2999,7 +3268,7 @@ if (page === 'payment') {
   setSummaryCardCopy(
    paymentSelectionSummary,
    `Slot ${booking.slot_number || '-'}`,
-   `${formatDateTime(booking.start_time)} to ${formatDateTime(booking.end_time)} � ${formatCurrency(booking.total_cost || 0)} � ${bookingMethod}`
+   `${formatDateTime(booking.start_time)} to ${formatDateTime(booking.end_time)} | ${formatCurrency(booking.total_cost || 0)} | ${bookingMethod}`
   );
 
   if (String(booking.payment_method || '').toLowerCase() === 'cash') {
@@ -4757,6 +5026,8 @@ function sanitizeMessage(message) {
  }
  return text;
 }
+
+
 
 
 
