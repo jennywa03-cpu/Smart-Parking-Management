@@ -235,11 +235,28 @@ function handleLogoutRedirect() {
  window.location.href = 'index.html';
 }
 
+function focusRequiredPasswordUpdate() {
+ const passwordSection = document.getElementById('profilePasswordForm');
+ const currentPasswordInput = document.getElementById('profileCurrentPassword');
+ if (passwordSection) {
+  passwordSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+ }
+ if (currentPasswordInput) {
+  setTimeout(() => currentPasswordInput.focus(), 120);
+ }
+ setMessage('profilePasswordMessage', 'Update your password first to unlock the dashboard.', true);
+}
+
 function buildTopbarProfileShell() {
  const auth = getAuth();
  const user = auth?.user;
+ const passwordResetRequired = mustChangePassword(auth);
  const { fullName, firstName, initial, roleLabel } = getUserDisplay(user);
- const dashboardHref = roleHome(user?.role || requiredRole || 'driver');
+ const dashboardHref = passwordResetRequired ? '#profilePasswordForm' : roleHome(user?.role || requiredRole || 'driver');
+ const dashboardTitle = passwordResetRequired ? 'Update password first' : 'Go to dashboard';
+ const dashboardSubtitle = passwordResetRequired
+  ? 'Finish the required password change before leaving this page'
+  : 'Return to your workspace';
  const shell = document.createElement('div');
  shell.className = 'topbar-profile-shell';
  shell.setAttribute('data-topbar-profile', 'true');
@@ -265,11 +282,11 @@ function buildTopbarProfileShell() {
     </span>
     <span class="topbar-profile-action-copy"><strong>Open profile</strong><span>Update your details</span></span>
    </a>
-   <a class="topbar-profile-action" href="${dashboardHref}" role="menuitem">
+   <a class="topbar-profile-action${passwordResetRequired ? ' is-locked' : ''}" href="${dashboardHref}" role="menuitem">
     <span class="topbar-profile-action-icon" aria-hidden="true">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5 10.5V20h14v-9.5"></path></svg>
     </span>
-    <span class="topbar-profile-action-copy"><strong>Go to dashboard</strong><span>Return to your workspace</span></span>
+    <span class="topbar-profile-action-copy"><strong>${dashboardTitle}</strong><span>${dashboardSubtitle}</span></span>
    </a>
    <button class="topbar-profile-action is-logout" type="button" role="menuitem">
     <span class="topbar-profile-action-icon" aria-hidden="true">
@@ -329,7 +346,14 @@ function buildTopbarProfileShell() {
  });
 
  shell.querySelectorAll('.topbar-profile-action[href]').forEach((link) => {
-  link.addEventListener('click', () => closeMenu());
+  link.addEventListener('click', (event) => {
+   const href = link.getAttribute('href') || '';
+   closeMenu();
+   if (href === '#profilePasswordForm') {
+    event.preventDefault();
+    focusRequiredPasswordUpdate();
+   }
+  });
  });
 
  logoutButton?.addEventListener('click', async (event) => {
@@ -791,11 +815,16 @@ function initAppChrome() {
 function initVisibilityToggles() {
  document.querySelectorAll('.toggle-visibility').forEach((button) => {
   const targetId = button.getAttribute('data-target');
-  if (!targetId) return;
+  if (!targetId) {
+   button.remove();
+   return;
+  }
   const input = document.getElementById(targetId);
-  if (!input) return;
+  if (!input || input.tagName !== 'INPUT' || input.type !== 'password') {
+   button.remove();
+   return;
+  }
 
-  const revealType = input.type === 'password' ? 'text' : input.type || 'text';
   const visibilityLabel = button.getAttribute('data-visibility-label') || 'password';
 
   const setState = (isVisible) => {
@@ -809,7 +838,7 @@ function initVisibilityToggles() {
 
   button.addEventListener('click', () => {
    const isVisible = input.type !== 'password';
-   input.type = isVisible ? 'password' : revealType;
+   input.type = isVisible ? 'password' : 'text';
    setState(!isVisible);
    input.focus();
   });
@@ -2222,16 +2251,22 @@ if (page === 'profile') {
   },
  };
 
- const applyRolePresentation = (roleValue) => {
+ const updateDashboardAccess = (roleValue, required) => {
+  const role = roleValue || auth?.user?.role || 'driver';
+  const targetHref = required ? '#profilePasswordForm' : roleHome(role);
+  [dashboardLink, heroDashboardLink].forEach((link) => {
+   if (!link) return;
+   link.href = targetHref;
+   link.toggleAttribute('aria-disabled', required);
+   link.classList.toggle('is-locked', required);
+  });
+ };
+
+ const applyRolePresentation = (roleValue, passwordRequired = mustChangePassword(getAuth())) => {
   const role = roleValue || auth?.user?.role || 'driver';
   const content = roleContent[role] || roleContent.driver;
   document.body.dataset.profileRole = role;
-  if (dashboardLink) {
-   dashboardLink.href = roleHome(role);
-  }
-  if (heroDashboardLink) {
-   heroDashboardLink.href = roleHome(role);
-  }
+  updateDashboardAccess(role, passwordRequired);
   if (roleChip) {
    roleChip.textContent = content.chip;
   }
@@ -2250,6 +2285,8 @@ if (page === 'profile') {
   if (securityAlert) {
    securityAlert.hidden = true;
   }
+  updateDashboardAccess(getAuth()?.user?.role || auth?.user?.role, required);
+  refreshTopbarProfile();
   if (required) {
    setPersistentTopbarNotice(
     'You are signed in with deployment seed credentials. Update your password now before continuing.',
@@ -2258,12 +2295,9 @@ if (page === 'profile') {
   } else {
    clearPersistentTopbarNotice();
   }
-  if (dashboardLink) {
-   dashboardLink.toggleAttribute('aria-disabled', required);
-  }
  };
 
- applyRolePresentation(auth?.user?.role);
+ applyRolePresentation(auth?.user?.role, mustChangePassword(auth));
  syncPasswordRequirement(mustChangePassword(auth));
 
  async function loadProfile() {
@@ -2273,7 +2307,7 @@ if (page === 'profile') {
    form.email.value = data.email || '';
    form.phone.value = data.phone || '';
    form.vehicle_number.value = data.vehicle_number || '';
-   applyRolePresentation(data.user_type || auth?.user?.role);
+   applyRolePresentation(data.user_type || auth?.user?.role, Boolean(data.must_change_password));
    updateAuthUser({
     name: data.name,
     email: data.email,
@@ -2291,6 +2325,14 @@ if (page === 'profile') {
  }
 
  loadProfile();
+
+ [dashboardLink, heroDashboardLink].forEach((link) => {
+  link?.addEventListener('click', (event) => {
+   if (link.getAttribute('href') !== '#profilePasswordForm') return;
+   event.preventDefault();
+   focusRequiredPasswordUpdate();
+  });
+ });
 
  form?.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -5026,6 +5068,14 @@ function sanitizeMessage(message) {
  }
  return text;
 }
+
+
+
+
+
+
+
+
 
 
 
