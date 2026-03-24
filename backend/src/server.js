@@ -16,7 +16,12 @@ const paymentsRoutes = require('./routes/payments');
 const usersRoutes = require('./routes/users');
 const { startReportScheduler } = require('./services/reportScheduler');
 const { ensurePublicIdentifiers } = require('./services/publicIdentifiers');
-const { expirePendingSelections, resyncAllSlotStatuses, startPendingSelectionExpiryScheduler } = require('./services/bookingLifecycle');
+const { ensureAdminSeed } = require('./services/adminSeed');
+const {
+  expirePendingSelections,
+  resyncAllSlotStatuses,
+  startPendingSelectionExpiryScheduler,
+} = require('./services/bookingLifecycle');
 
 const app = express();
 
@@ -123,17 +128,24 @@ pool
       // eslint-disable-next-line no-console
       console.log('Public user and slot IDs ensured');
 
+      const adminSeed = await ensureAdminSeed(pool);
+      if (adminSeed.skipped) {
+        // eslint-disable-next-line no-console
+        console.log('Admin seed skipped: set ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD in environment variables');
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`Admin seed ${adminSeed.created ? 'created' : 'verified'} for ${adminSeed.email}`);
+      }
+
       const slotCount = await resyncAllSlotStatuses(pool);
       // eslint-disable-next-line no-console
       console.log(`Slot status resync complete for ${slotCount} slots`);
     } catch (syncErr) {
       // eslint-disable-next-line no-console
-      console.error('Slot status resync failed:', syncErr.message);
+      console.error('Startup sync failed:', syncErr.message);
     }
   })
   .catch((err) => {
     // eslint-disable-next-line no-console
     console.error('Database connection failed:', err.message);
   });
-
-
