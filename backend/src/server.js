@@ -25,6 +25,27 @@ const {
 
 const app = express();
 
+const trustProxySetting = String(process.env.TRUST_PROXY || '').trim();
+if (trustProxySetting) {
+  const normalizedTrustProxy = trustProxySetting.toLowerCase();
+  if (normalizedTrustProxy === 'true') {
+    app.set('trust proxy', true);
+  } else if (normalizedTrustProxy === 'false') {
+    app.set('trust proxy', false);
+  } else if (!Number.isNaN(Number(trustProxySetting))) {
+    app.set('trust proxy', Number(trustProxySetting));
+  } else {
+    app.set('trust proxy', trustProxySetting);
+  }
+} else if (
+  process.env.RAILWAY_ENVIRONMENT ||
+  process.env.RAILWAY_PROJECT_ID ||
+  process.env.RAILWAY_PUBLIC_DOMAIN ||
+  process.env.RAILWAY_STATIC_URL
+) {
+  app.set('trust proxy', 1);
+}
+
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(
