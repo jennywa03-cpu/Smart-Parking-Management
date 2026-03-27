@@ -71,7 +71,9 @@ router.post(
   async (req, res, next) => {
     const connection = await pool.getConnection();
     try {
-      const { slot_id, start_time, end_time, payment_method } = req.body;
+      const { slot_id, start_time, end_time, payment_method: requestedPaymentMethod } = req.body;
+      const payment_method =
+        process.env.MPESA_ENABLED === 'true' ? requestedPaymentMethod : 'cash';
 
       const start = new Date(start_time);
       const end = new Date(end_time);
@@ -131,6 +133,7 @@ router.post(
       return res.status(201).json({
         booking_id: bookingResult.insertId,
         payment_id: paymentResult.insertId,
+        payment_method,
         booking_status: bookingStatus,
         payment_status: paymentStatus,
         released_unpaid_bookings: releasedSelections,

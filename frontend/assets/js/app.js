@@ -1,4 +1,5 @@
-﻿const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:4000';
+const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:4000';
+const MPESA_ENABLED = Boolean(window.APP_CONFIG?.MPESA_ENABLED);
 const page = document.body.dataset.page;
 const requiredRole = document.body.dataset.role;
 const requireAuthOnly = document.body.dataset.auth === 'true';
@@ -2431,6 +2432,7 @@ if (page === 'driver') {
  const bookingFlashBody = document.getElementById('driverBookingFlashBody');
  const bookingFlashPrimary = document.getElementById('driverBookingFlashPrimary');
  const bookingFlashSecondary = document.getElementById('driverBookingFlashSecondary');
+ const driverPaymentMethodNote = document.getElementById('driverPaymentMethodNote');
  const slotFilterButtons = Array.from(document.querySelectorAll('[data-slot-filter]'));
  const workspacePanel = document.getElementById('driverWorkspace');
  const bookingPanel = document.getElementById('driver-booking-panel');
@@ -2469,6 +2471,33 @@ if (page === 'driver') {
   const firstName = getAuth()?.user?.name?.trim()?.split(/\s+/)[0] || 'Driver';
   if (greetingEl) {
    greetingEl.textContent = `${firstName}, ready to park?`;
+  }
+ };
+
+ const applyDriverPaymentAvailability = () => {
+  const paymentSelect = bookingForm?.payment_method;
+  const mobileOption = paymentSelect?.querySelector('option[value="mobile_money"]');
+  const cashOption = paymentSelect?.querySelector('option[value="cash"]');
+  if (!paymentSelect || !cashOption) return;
+
+  if (!MPESA_ENABLED) {
+   if (mobileOption) {
+    mobileOption.remove();
+   }
+   cashOption.disabled = false;
+   paymentSelect.value = 'cash';
+   if (driverPaymentMethodNote) {
+    driverPaymentMethodNote.textContent = 'Cash payment is active right now. The attendant will collect payment when you leave the lot.';
+   }
+   return;
+  }
+
+  if (mobileOption) {
+   mobileOption.disabled = false;
+   mobileOption.hidden = false;
+  }
+  if (driverPaymentMethodNote) {
+   driverPaymentMethodNote.textContent = 'Choose a payment method for this booking.';
   }
  };
 
@@ -2626,37 +2655,35 @@ if (page === 'driver') {
  };
 
  const updatePendingPaymentInsights = (bookings = []) => {
-  const pendingMobileBookings = bookings.filter((booking) => {
+  const pendingCashBookings = bookings.filter((booking) => {
    const bookingStatus = String(booking.booking_status || '').toLowerCase();
    const paymentStatus = String(booking.payment_status || '').toLowerCase();
    const paymentMethod = String(booking.payment_method || '').toLowerCase();
-   return bookingStatus === 'pending' && paymentStatus !== 'paid' && paymentMethod === 'mobile money';
+   return bookingStatus !== 'cancelled' && bookingStatus !== 'completed' && paymentStatus !== 'paid' && paymentMethod === 'cash';
   });
 
   if (heroPendingEl) {
-   heroPendingEl.textContent = String(pendingMobileBookings.length);
+   heroPendingEl.textContent = String(pendingCashBookings.length);
   }
 
   if (!pendingSummaryEl || !pendingDetailEl) return;
 
-  if (!pendingMobileBookings.length) {
-   pendingSummaryEl.textContent = 'No pending mobile-money payments.';
-   pendingDetailEl.textContent = 'New selections stay visible to others until you complete payment.';
+  if (!pendingCashBookings.length) {
+   pendingSummaryEl.textContent = 'No cash payments waiting at exit.';
+   pendingDetailEl.textContent = 'Any unpaid cash bookings will appear here until the attendant records payment.';
    return;
   }
 
-  const nextPending = pendingMobileBookings
-   .map((booking) => ({ booking, deadline: getPendingPaymentDeadline(booking) }))
+  const nextPending = pendingCashBookings
+   .map((booking) => ({ booking, createdAt: booking.created_at ? new Date(booking.created_at) : null }))
    .sort((a, b) => {
-    const aTime = a.deadline ? a.deadline.getTime() : Number.POSITIVE_INFINITY;
-    const bTime = b.deadline ? b.deadline.getTime() : Number.POSITIVE_INFINITY;
+    const aTime = a.createdAt ? a.createdAt.getTime() : Number.POSITIVE_INFINITY;
+    const bTime = b.createdAt ? b.createdAt.getTime() : Number.POSITIVE_INFINITY;
     return aTime - bTime;
    })[0];
 
-  const deadline = nextPending?.deadline || null;
-  const countdown = formatCountdown(getRemainingSeconds(deadline) || 0);
-  pendingSummaryEl.innerHTML = `${pendingMobileBookings.length} payment${pendingMobileBookings.length === 1 ? '' : 's'} awaiting confirmation. <span data-hold-countdown data-hold-deadline="${deadline ? deadline.toISOString() : ''}">${countdown}</span>`;
-  pendingDetailEl.textContent = `Complete payment for slot ${nextPending?.booking?.slot_number || '-'} before the hold expires.`;
+  pendingSummaryEl.textContent = `${pendingCashBookings.length} cash booking${pendingCashBookings.length === 1 ? '' : 's'} awaiting exit payment.`;
+  pendingDetailEl.textContent = `Slot ${nextPending?.booking?.slot_number || '-'} will be settled in cash when you leave the lot.`;
  };
 
  const updateEstimatePreview = () => {
@@ -2834,7 +2861,7 @@ if (page === 'driver') {
   const bookingStatus = String(booking.booking_status || 'pending').toLowerCase();
   const paymentStatus = String(booking.payment_status || 'pending').toLowerCase();
   const paymentMethod = String(booking.payment_method || 'cash').replace(/_/g, ' ');
-  const canPay = paymentStatus !== 'paid' && paymentMethod === 'mobile money';
+  const canPay = paymentStatus !== 'paid' && paymentMethod === 'cash';
   const canOpen = Boolean(booking?.booking_id);
 
   const card = document.createElement('article');
@@ -2932,7 +2959,7 @@ if (page === 'driver') {
   const actionButton = document.createElement('button');
   actionButton.type = 'button';
   actionButton.className = canPay ? 'btn-primary' : 'btn-muted';
-  actionButton.textContent = canPay ? 'Pay now' : 'Open booking';
+  actionButton.textContent = canPay ? 'View cash details' : 'Open booking';
 
   if (canOpen) {
    actionButton.addEventListener('click', (event) => {
@@ -3160,7 +3187,7 @@ if (page === 'driver') {
    slot_id: Number(selectedSlot.slot_id),
    start_time: bookingForm.start_time.value,
    end_time: bookingForm.end_time.value,
-   payment_method: bookingForm.payment_method.value,
+   payment_method: MPESA_ENABLED ? bookingForm.payment_method.value : 'cash',
   };
   const bookingSnapshot = {
    slotNumber: selectedSlot.slot_number || '-',
@@ -3220,6 +3247,7 @@ if (page === 'driver') {
  setGreeting();
  consumeDriverFlash();
  seedBookingWindow();
+ applyDriverPaymentAvailability();
  updateFilterButtons();
  updateEstimatePreview();
  loadSlots();
@@ -3247,6 +3275,8 @@ if (page === 'payment') {
  const paymentSuccessTitle = document.getElementById('paymentSuccessTitle');
  const paymentSuccessBody = document.getElementById('paymentSuccessBody');
  const payNowBtn = paymentForm?.querySelector('button[type="submit"]');
+ const paymentMethodNote = document.getElementById('paymentMethodNote');
+ const paymentMobileOption = document.getElementById('paymentMobileOption');
 
  const params = new URLSearchParams(window.location.search);
  const presetBookingId = params.get('booking_id');
@@ -3294,19 +3324,19 @@ if (page === 'payment') {
    setSummaryCardCopy(
     paymentSelectionSummary,
     'Choose a booking to continue.',
-    'Once selected, the amount, timing, and hold countdown update automatically here.'
+    'Once selected, the amount, timing, and payment details update automatically here.'
    );
    setSummaryCardCopy(
     paymentNextStepSummary,
-    'Select a pending booking.',
-    'Choose the reservation you want to pay for and we will prepare the next step for you.'
+    'Select a booking.',
+    'Choose the reservation you want to review and we will show the cash payment steps here.'
    );
    return;
   }
 
   const deadline = getPendingPaymentDeadline(booking);
   const remaining = getRemainingSeconds(deadline);
-  const bookingMethod = formatLabel(booking.payment_method || 'mobile money');
+  const bookingMethod = formatLabel(booking.payment_method || 'cash');
   setSummaryCardCopy(
    paymentSelectionSummary,
    `Slot ${booking.slot_number || '-'}`,
@@ -3325,7 +3355,7 @@ if (page === 'payment') {
   setSummaryCardCopy(
    paymentNextStepSummary,
    `${formatCountdown(remaining || getPaymentHoldSeconds())} remaining`,
-   `Confirm the mobile-money prompt for slot ${booking.slot_number || '-'} before the temporary hold expires.`
+   `Complete payment for slot ${booking.slot_number || '-'} before the temporary hold expires.`
   );
  };
 
@@ -3349,22 +3379,47 @@ if (page === 'payment') {
  const updateMethodControls = (booking) => {
   const cashRadio = paymentForm?.querySelector('input[value="cash"]');
   const mobileRadio = paymentForm?.querySelector('input[value="mobile_money"]');
-  if (!cashRadio || !mobileRadio) return;
+  if (!cashRadio) return;
 
+  const mobileLabel = paymentMobileOption || mobileRadio?.closest('label');
   cashRadio.disabled = false;
-  mobileRadio.disabled = false;
+  if (mobileRadio) {
+   mobileRadio.disabled = false;
+  }
+
+  if (!MPESA_ENABLED) {
+   cashRadio.checked = true;
+   if (mobileRadio) {
+    mobileRadio.checked = false;
+    mobileRadio.disabled = true;
+   }
+   if (mobileLabel) mobileLabel.remove();
+   if (mobileFields) mobileFields.remove();
+   if (paymentMethodNote) {
+    paymentMethodNote.textContent = 'Cash payment is active right now. Pay the attendant when you leave the lot.';
+   }
+   updateSubmitButton(booking);
+   return;
+  }
+
+  if (mobileLabel) mobileLabel.hidden = false;
+  if (paymentMethodNote) {
+   paymentMethodNote.textContent = 'Choose how you want to pay for this booking.';
+  }
 
   if (!booking) {
-   if (mobileFields) mobileFields.style.display = mobileRadio.checked ? 'block' : 'none';
+   if (mobileFields) mobileFields.style.display = mobileRadio?.checked ? 'block' : 'none';
    updateSubmitButton(null);
    return;
   }
 
   const bookingMethod = booking.payment_method || 'mobile_money';
-  if (bookingMethod === 'cash') {
+  if (bookingMethod === 'cash' || !mobileRadio) {
    cashRadio.checked = true;
-   mobileRadio.checked = false;
-   mobileRadio.disabled = true;
+   if (mobileRadio) {
+    mobileRadio.checked = false;
+    mobileRadio.disabled = true;
+   }
    if (mobileFields) mobileFields.style.display = 'none';
   } else {
    mobileRadio.checked = true;
@@ -3522,6 +3577,10 @@ if (page === 'payment') {
     updateMethodControls(selectedBooking);
     return;
    }
+   if (!MPESA_ENABLED) {
+    updateMethodControls(selectedBooking);
+    return;
+   }
    const isMobile = radio.value === 'mobile_money' && radio.checked;
    if (mobileFields) {
     mobileFields.style.display = isMobile ? 'block' : 'none';
@@ -3598,8 +3657,8 @@ if (page === 'payment') {
 
  if (paymentFlash) {
   renderSuccessState(
-   paymentFlash.title || 'Booking created. Finish payment now.',
-   paymentFlash.body || 'Complete the payment prompt before the temporary hold expires.'
+   paymentFlash.title || 'Booking created.',
+   paymentFlash.body || 'Your booking is ready. Pay the attendant in cash when you leave the lot.'
   );
  }
 
@@ -5068,89 +5127,3 @@ function sanitizeMessage(message) {
  }
  return text;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

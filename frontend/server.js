@@ -26,6 +26,7 @@ function buildRuntimeConfig() {
     {
       API_BASE: apiBase,
       PAYMENT_HOLD_SECONDS: HOLD_SECONDS,
+      MPESA_ENABLED: String(process.env.MPESA_ENABLED || 'false').trim().toLowerCase() === 'true',
     },
     null,
     2
@@ -134,6 +135,12 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
+  const appUrl = `http://localhost:${PORT}`;
+  const healthUrl = `${appUrl}/health`;
   // eslint-disable-next-line no-console
-  console.log(`Frontend server running on port ${PORT}`);
+  console.log(`Frontend server running on ${appUrl}`);
+  // eslint-disable-next-line no-console
+  console.log(`Open: ${appUrl}`);
+  // eslint-disable-next-line no-console
+  console.log(`Health: ${healthUrl}`);
 });

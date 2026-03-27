@@ -1,4 +1,5 @@
 window.RUNTIME_CONFIG = window.RUNTIME_CONFIG || {
   API_BASE: '',
   PAYMENT_HOLD_SECONDS: 120,
+  MPESA_ENABLED: false,
 };

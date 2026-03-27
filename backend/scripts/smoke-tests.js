@@ -7,6 +7,7 @@ const ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAI
 const ADMIN_PASSWORD = process.env.SMOKE_ADMIN_PASSWORD || process.env.ADMIN_SEED_PASSWORD;
 const ATTENDANT_EMAIL = process.env.SMOKE_ATTENDANT_EMAIL || `automation.attendant.${Date.now()}@example.invalid`; 
 const ATTENDANT_PASSWORD = process.env.SMOKE_ATTENDANT_PASSWORD || 'Attendant@123';
+const MPESA_ENABLED = process.env.MPESA_ENABLED === 'true';
 
 async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
@@ -177,131 +178,184 @@ async function run() {
   const start = new Date();
   const end = new Date(Date.now() + 60 * 60 * 1000);
 
-  const firstSelection = await api('/api/driver/bookings', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${driverToken}` },
-    body: JSON.stringify({
-      slot_id: slotA.slot_id,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      payment_method: 'mobile_money',
-    }),
-  });
+  let confirmedBookingId = null;
+  let confirmedPaymentId = null;
+  let confirmedSlot = null;
 
-  assert(firstSelection.booking_status === 'pending', 'First mobile selection should stay pending');
-  assert(firstSelection.slot_locked === false, 'Unpaid mobile selection should not lock the slot');
+  if (MPESA_ENABLED) {
+    const firstSelection = await api('/api/driver/bookings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${driverToken}` },
+      body: JSON.stringify({
+        slot_id: slotA.slot_id,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        payment_method: 'mobile_money',
+      }),
+    });
 
-  const afterFirstSlots = await api('/api/driver/slots', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  assert(
-    afterFirstSlots.some((slot) => slot.slot_id === slotA.slot_id),
-    'Unpaid slot should still be visible after first selection'
-  );
-  assertPublicCode(afterFirstSlots[0]?.slot_code || slotA.slot_code, 'SLT', 'Driver slot list should expose alphanumeric slot codes');
+    assert(firstSelection.booking_status === 'pending', 'First mobile selection should stay pending');
+    assert(firstSelection.slot_locked === false, 'Unpaid mobile selection should not lock the slot');
 
-  const secondSelection = await api('/api/driver/bookings', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${driverToken}` },
-    body: JSON.stringify({
-      slot_id: slotB.slot_id,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      payment_method: 'mobile_money',
-    }),
-  });
+    const afterFirstSlots = await api('/api/driver/slots', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    assert(
+      afterFirstSlots.some((slot) => slot.slot_id === slotA.slot_id),
+      'Unpaid slot should still be visible after first selection'
+    );
+    assertPublicCode(afterFirstSlots[0]?.slot_code || slotA.slot_code, 'SLT', 'Driver slot list should expose alphanumeric slot codes');
 
-  assert(secondSelection.booking_status === 'pending', 'Second mobile selection should stay pending');
-  assert(
-    Number(secondSelection.released_unpaid_bookings || 0) >= 1,
-    'Older unpaid selection should be auto-cancelled when a new one is created'
-  );
+    const secondSelection = await api('/api/driver/bookings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${driverToken}` },
+      body: JSON.stringify({
+        slot_id: slotB.slot_id,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        payment_method: 'mobile_money',
+      }),
+    });
 
-  const bookingsAfterSwap = await api('/api/driver/bookings', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  const firstBooking = bookingsAfterSwap.find((booking) => booking.booking_id === firstSelection.booking_id);
-  const secondBooking = bookingsAfterSwap.find((booking) => booking.booking_id === secondSelection.booking_id);
-  assert(firstBooking?.booking_status === 'cancelled', 'First selection should be cancelled after switching slots');
-  assert(secondBooking?.booking_status === 'pending', 'Newest selection should remain pending before payment');
-  assertPublicCode(secondBooking?.slot_code || slotB.slot_code, 'SLT', 'Driver bookings should expose alphanumeric slot codes');
+    assert(secondSelection.booking_status === 'pending', 'Second mobile selection should stay pending');
+    assert(
+      Number(secondSelection.released_unpaid_bookings || 0) >= 1,
+      'Older unpaid selection should be auto-cancelled when a new one is created'
+    );
 
-  const db = await getDbConnection();
-  const expirySeconds = Number(process.env.BOOKING_HOLD_SECONDS || 120) + 10;
-  await backdateBooking(db, secondSelection.booking_id, expirySeconds);
-  await db.end();
+    const bookingsAfterSwap = await api('/api/driver/bookings', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const firstBooking = bookingsAfterSwap.find((booking) => booking.booking_id === firstSelection.booking_id);
+    const secondBooking = bookingsAfterSwap.find((booking) => booking.booking_id === secondSelection.booking_id);
+    assert(firstBooking?.booking_status === 'cancelled', 'First selection should be cancelled after switching slots');
+    assert(secondBooking?.booking_status === 'pending', 'Newest selection should remain pending before payment');
+    assertPublicCode(secondBooking?.slot_code || slotB.slot_code, 'SLT', 'Driver bookings should expose alphanumeric slot codes');
 
-  const bookingsAfterExpiry = await api('/api/driver/bookings', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  const expiredBooking = bookingsAfterExpiry.find((booking) => booking.booking_id === secondSelection.booking_id);
-  assert(expiredBooking?.booking_status === 'cancelled', 'Pending selection should auto-cancel after the hold window expires');
+    const db = await getDbConnection();
+    const expirySeconds = Number(process.env.BOOKING_HOLD_SECONDS || 120) + 10;
+    await backdateBooking(db, secondSelection.booking_id, expirySeconds);
+    await db.end();
 
-  const visibleSlotsAfterExpiry = await api('/api/driver/slots', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  assert(
-    visibleSlotsAfterExpiry.some((slot) => slot.slot_id === slotB.slot_id),
-    'Expired slot should return to the public available list'
-  );
+    const bookingsAfterExpiry = await api('/api/driver/bookings', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const expiredBooking = bookingsAfterExpiry.find((booking) => booking.booking_id === secondSelection.booking_id);
+    assert(expiredBooking?.booking_status === 'cancelled', 'Pending selection should auto-cancel after the hold window expires');
 
-  const thirdSelection = await api('/api/driver/bookings', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${driverToken}` },
-    body: JSON.stringify({
-      slot_id: slotB.slot_id,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      payment_method: 'mobile_money',
-    }),
-  });
+    const visibleSlotsAfterExpiry = await api('/api/driver/slots', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    assert(
+      visibleSlotsAfterExpiry.some((slot) => slot.slot_id === slotB.slot_id),
+      'Expired slot should return to the public available list'
+    );
 
-  const paymentConfirmation = await api(`/api/admin/payments/${thirdSelection.payment_id}/status`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${adminToken}` },
-    body: JSON.stringify({
-      status: 'paid',
-      note: 'Verification payment confirmation',
-    }),
-  });
-  assert(paymentConfirmation.payment_status === 'paid', 'Admin payment confirmation should mark payment as paid');
-  assert(paymentConfirmation.booking_status === 'confirmed', 'Paid selection should become confirmed');
+    const thirdSelection = await api('/api/driver/bookings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${driverToken}` },
+      body: JSON.stringify({
+        slot_id: slotB.slot_id,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        payment_method: 'mobile_money',
+      }),
+    });
 
-  const bookingsAfterPayment = await api('/api/driver/bookings', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  const paidBooking = bookingsAfterPayment.find((booking) => booking.booking_id === thirdSelection.booking_id);
-  assert(paidBooking?.booking_status === 'confirmed', 'Paid booking should be confirmed in booking list');
-  assert(paidBooking?.payment_status === 'paid', 'Paid booking should show paid payment status');
-  assertPublicCode(paidBooking?.slot_code, 'SLT', 'Paid booking should still expose the public slot code');
+    const paymentConfirmation = await api(`/api/admin/payments/${thirdSelection.payment_id}/status`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({
+        status: 'paid',
+        note: 'Verification payment confirmation',
+      }),
+    });
+    assert(paymentConfirmation.payment_status === 'paid', 'Admin payment confirmation should mark payment as paid');
+    assert(paymentConfirmation.booking_status === 'confirmed', 'Paid selection should become confirmed');
 
-  const filteredByCodes = await api(`/api/admin/bookings?user_id=${encodeURIComponent(createdDriver.user_code)}&slot_id=${encodeURIComponent(slotB.slot_code)}`, {
-    headers: { Authorization: `Bearer ${adminToken}` },
-  });
-  assert(filteredByCodes.some((booking) => booking.booking_id === thirdSelection.booking_id), 'Admin booking filters should accept public user and slot codes');
+    const bookingsAfterPayment = await api('/api/driver/bookings', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const paidBooking = bookingsAfterPayment.find((booking) => booking.booking_id === thirdSelection.booking_id);
+    assert(paidBooking?.booking_status === 'confirmed', 'Paid booking should be confirmed in booking list');
+    assert(paidBooking?.payment_status === 'paid', 'Paid booking should show paid payment status');
+    assertPublicCode(paidBooking?.slot_code, 'SLT', 'Paid booking should still expose the public slot code');
 
-  const visibleSlotsAfterPayment = await api('/api/driver/slots', {
-    headers: { Authorization: `Bearer ${driverToken}` },
-  });
-  const paidSlot = visibleSlotsAfterPayment.find((slot) => slot.slot_id === slotB.slot_id);
-  assert(paidSlot, 'Paid slot should remain visible on the lot map');
-  assert(paidSlot.status === 'booked', 'Paid slot should show as booked on the lot map');
+    const filteredByCodes = await api(`/api/admin/bookings?user_id=${encodeURIComponent(createdDriver.user_code)}&slot_id=${encodeURIComponent(slotB.slot_code)}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert(filteredByCodes.some((booking) => booking.booking_id === thirdSelection.booking_id), 'Admin booking filters should accept public user and slot codes');
+
+    const visibleSlotsAfterPayment = await api('/api/driver/slots', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const paidSlot = visibleSlotsAfterPayment.find((slot) => slot.slot_id === slotB.slot_id);
+    assert(paidSlot, 'Paid slot should remain visible on the lot map');
+    assert(paidSlot.status === 'booked', 'Paid slot should show as booked on the lot map');
+
+    confirmedBookingId = thirdSelection.booking_id;
+    confirmedPaymentId = thirdSelection.payment_id;
+    confirmedSlot = slotB;
+  } else {
+    const cashSelection = await api('/api/driver/bookings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${driverToken}` },
+      body: JSON.stringify({
+        slot_id: slotA.slot_id,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        payment_method: 'mobile_money',
+      }),
+    });
+
+    assert(cashSelection.payment_method === 'cash', 'Cash mode should force every new booking to cash');
+    assert(cashSelection.booking_status === 'confirmed', 'Cash booking should become confirmed immediately');
+    assert(cashSelection.slot_locked === true, 'Cash booking should lock the slot immediately');
+
+    const cashBookings = await api('/api/driver/bookings', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const confirmedCashBooking = cashBookings.find((booking) => booking.booking_id === cashSelection.booking_id);
+    assert(confirmedCashBooking?.booking_status === 'confirmed', 'Cash booking should appear as confirmed in the booking list');
+    assert(confirmedCashBooking?.payment_status === 'pending', 'Cash booking should remain pending until exit collection');
+    assertPublicCode(confirmedCashBooking?.slot_code || slotA.slot_code, 'SLT', 'Cash booking should expose the public slot code');
+
+    const filteredByCodes = await api(`/api/admin/bookings?user_id=${encodeURIComponent(createdDriver.user_code)}&slot_id=${encodeURIComponent(slotA.slot_code)}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert(filteredByCodes.some((booking) => booking.booking_id === cashSelection.booking_id), 'Admin booking filters should accept public user and slot codes in cash mode');
+
+    const visibleSlotsAfterCash = await api('/api/driver/slots', {
+      headers: { Authorization: `Bearer ${driverToken}` },
+    });
+    const bookedCashSlot = visibleSlotsAfterCash.find((slot) => slot.slot_id === slotA.slot_id);
+    assert(bookedCashSlot, 'Cash-booked slot should remain visible on the lot map');
+    assert(bookedCashSlot.status === 'booked', 'Cash-booked slot should show as booked on the lot map');
+
+    confirmedBookingId = cashSelection.booking_id;
+    confirmedPaymentId = cashSelection.payment_id;
+    confirmedSlot = slotA;
+  }
+
+  assert(confirmedBookingId, 'A confirmed booking id should be available for attendant verification');
+  assert(confirmedPaymentId, 'A confirmed payment id should be available for attendant verification');
+  assert(confirmedSlot?.slot_id, 'A confirmed slot should be available for attendant verification');
 
   const entry = await api('/api/attendant/entry', {
     method: 'POST',
     headers: { Authorization: `Bearer ${attendantToken}` },
     body: JSON.stringify({
       vehicle_number: vehicleNumber,
-      slot_id: slotB.slot_id,
-      booking_id: thirdSelection.booking_id,
+      slot_id: confirmedSlot.slot_id,
+      booking_id: confirmedBookingId,
     }),
   });
-  assert(entry.booking_id === thirdSelection.booking_id, 'Attendant entry should use the confirmed booking');
+  assert(entry.booking_id === confirmedBookingId, 'Attendant entry should use the confirmed booking');
 
   const activeEntry = await api(`/api/attendant/entries/active?vehicle_number=${encodeURIComponent(vehicleNumber)}`, {
     headers: { Authorization: `Bearer ${attendantToken}` },
   });
-  assert(activeEntry.slot_id === slotB.slot_id, 'Active entry lookup should return the booked slot');
+  assert(activeEntry.slot_id === confirmedSlot.slot_id, 'Active entry lookup should return the booked slot');
   assertPublicCode(activeEntry.slot_code, 'SLT', 'Attendant active entry lookup should expose the public slot code');
 
   const exit = await api('/api/attendant/exit', {
@@ -315,7 +369,7 @@ async function run() {
     headers: { Authorization: `Bearer ${driverToken}` },
   });
   assert(
-    reopenedSlots.some((slot) => slot.slot_id === slotB.slot_id),
+    reopenedSlots.some((slot) => slot.slot_id === confirmedSlot.slot_id),
     'Completed parking slot should become available again after exit'
   );
 

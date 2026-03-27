@@ -39,20 +39,20 @@
               <a class="btn-muted" href="driver.html">Back to driver dashboard</a>
             </div>
 
-            <div id="paymentHoldNotice" class="driver-hold-banner">
+            <div id="paymentHoldNotice" class="driver-hold-banner" hidden>
               <strong>Payment hold:</strong>
-              <span id="paymentHoldText">You have 2 minutes to confirm payment before the selection is released automatically.</span>
-              <strong id="paymentCountdown">02:00 remaining</strong>
+              <span id="paymentHoldText">Cash bookings are settled when you leave the lot.</span>
+              <strong id="paymentCountdown">Cash payment</strong>
             </div>
 
             <div class="payment-summary-strip">
               <section class="attendant-inline-summary payment-summary-card" id="paymentSelectionSummary">
                 <div class="title">Choose a booking to continue.</div>
-                <div class="subtitle">Once selected, the amount, timing, and hold countdown update automatically here.</div>
+                <div class="subtitle">Once selected, the amount, timing, and payment details update automatically here.</div>
               </section>
               <section class="attendant-inline-summary payment-summary-card" id="paymentNextStepSummary">
-                <div class="title">Complete mobile-money confirmation.</div>
-                <div class="subtitle">We will guide you through the next action so you can finish payment before the slot is released.</div>
+                <div class="title">Cash payment at exit.</div>
+                <div class="subtitle">Review the booking details here, then pay the attendant when you leave the lot.</div>
               </section>
             </div>
 
@@ -86,25 +86,10 @@
               </div>
 
               <div class="radio-group">
-                <label><input type="radio" name="payment_method" value="cash" /> Cash</label>
-                <label><input type="radio" name="payment_method" value="mobile_money" checked /> Mobile Money</label>
+                <label id="paymentCashOption"><input type="radio" name="payment_method" value="cash" checked /> Cash</label>
               </div>
 
-              <div id="mobileMoneyFields">
-                <div>
-                  <label for="paymentProvider">Provider</label>
-                  <select id="paymentProvider" name="provider">
-                    <option value="M-Pesa">M-Pesa</option>
-                    <option value="Airtel Money">Airtel Money</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="paymentPhone">Phone number</label>
-                  <input id="paymentPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
-                </div>
-              </div>
-
-              <div class="helper payment-inline-note">Mobile-money bookings must be confirmed within the live hold window. Cash bookings remain payable at exit.</div>
+              <div class="helper payment-inline-note" id="paymentMethodNote">Cash payment is active right now. Pay the attendant when you leave the lot.</div>
               <button class="btn-primary" type="submit">Pay Now</button>
             </form>
             <div id="paymentMessage" class="helper"></div>
@@ -118,4 +103,3 @@
     <script src="assets/js/app.js"></script>
   </body>
 </html>
-

@@ -9,5 +9,6 @@
   window.APP_CONFIG = {
     API_BASE: defaultApiBase,
     PAYMENT_HOLD_SECONDS: Number(runtime.PAYMENT_HOLD_SECONDS || 120),
+    MPESA_ENABLED: Boolean(runtime.MPESA_ENABLED),
   };
 })();
