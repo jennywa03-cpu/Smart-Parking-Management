@@ -7983,3 +7983,99 @@ body[data-page='driver'] .driver-estimate-card small {
     border-radius: 16px;
   }
 }
+
+/* Attendant page cleanup: clearer desk workflow */
+body[data-page='attendant'] .attendant-steps-card {
+  border-radius: 24px;
+  border: 1px solid rgba(21, 51, 58, 0.08);
+  box-shadow: 0 18px 34px rgba(17, 41, 48, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.98));
+}
+
+body[data-page='attendant'] .attendant-step-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+body[data-page='attendant'] .attendant-step-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid #dfe8eb;
+  background: #f8fbfb;
+}
+
+body[data-page='attendant'] .attendant-step-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #12343a;
+  box-shadow: 0 10px 20px rgba(18, 52, 58, 0.18);
+}
+
+body[data-page='attendant'] .attendant-step-copy {
+  min-width: 0;
+}
+
+body[data-page='attendant'] .attendant-step-copy strong {
+  display: block;
+  color: #12343a;
+  font-size: 15px;
+}
+
+body[data-page='attendant'] .attendant-step-copy p {
+  margin: 6px 0 0;
+  color: #60757b;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+body[data-page='attendant'] .attendant-panel-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+body[data-page='attendant'] .attendant-panel-toggle {
+  width: 100%;
+}
+
+body[data-page='attendant'] .attendant-panel-toggle.is-panel-active {
+  box-shadow: 0 16px 30px rgba(18, 52, 58, 0.14);
+}
+
+body[data-page='attendant'] .attendant-hero-panel .ops-badge strong {
+  line-height: 1.5;
+}
+
+@media (max-width: 1180px) {
+  body[data-page='attendant'] .attendant-step-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page='attendant'] .attendant-step-card {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page='attendant'] .attendant-step-number {
+    width: 32px;
+    height: 32px;
+  }
+
+  body[data-page='attendant'] .attendant-panel-switch {
+    grid-template-columns: 1fr;
+  }
+}

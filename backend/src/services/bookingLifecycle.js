@@ -187,6 +187,7 @@ async function cancelPendingSelectionsForSlot(connection, slotId, options = {}) 
 async function applyPaymentOutcome(connection, paymentId, status, options = {}) {
   const [rows] = await connection.query(
     `SELECT p.payment_id, p.booking_id, p.status AS payment_status,
+            p.payment_method,
             b.status AS booking_status, b.slot_id,
             s.status AS slot_status
      FROM payments p
@@ -208,7 +209,13 @@ async function applyPaymentOutcome(connection, paymentId, status, options = {}) 
   let reviewMessage = null;
 
   if (status === 'paid') {
-    if (['cancelled', 'completed'].includes(payment.booking_status)) {
+    const isCompletedCashBooking =
+      String(payment.payment_method || '').toLowerCase() === 'cash' &&
+      payment.booking_status === 'completed';
+
+    if (isCompletedCashBooking) {
+      finalBookingStatus = 'completed';
+    } else if (['cancelled', 'completed'].includes(payment.booking_status)) {
       reviewMessage = 'Payment received for a closed booking. Manual review required.';
     } else if (['maintenance', 'occupied'].includes(payment.slot_status)) {
       finalBookingStatus = 'cancelled';
@@ -366,3 +373,4 @@ module.exports = {
   startPendingSelectionExpiryScheduler,
   syncSlotStatus,
 };
+

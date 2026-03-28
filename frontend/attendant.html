@@ -22,7 +22,7 @@
       </aside>
 
       <section class="main-panel">
-                <header class="topbar">
+        <header class="topbar">
           <div class="topbar-left">
             <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
           </div>
@@ -32,43 +32,79 @@
         <div class="content">
           <section class="card ops-hero attendant-hero">
             <div class="ops-hero-copy">
-              <div class="status">Operations Console</div>
-              <h1 class="ops-hero-title">Keep arrivals, exits, and reservations flowing without delay.</h1>
+              <div class="status">Attendant Dashboard</div>
+              <h1 class="ops-hero-title">Handle arrivals and exits from one clear desk.</h1>
               <p class="ops-hero-text">
-                Quick lookups, live lot visibility, and clear tools for the front desk team.
+                Verify the driver, load the right slot, check cash at exit, and keep the gate moving without making attendants guess where to start.
               </p>
               <div class="ops-hero-actions">
                 <a class="btn-primary" href="#entryCard" data-attendant-open="entry" data-attendant-target="entryCard">Record entry</a>
                 <a class="btn-muted" href="#exitCard" data-attendant-open="exit" data-attendant-target="exitCard">Process exit</a>
-                <a class="btn-muted" href="reservations.html">Verify reservations</a>
+                <a class="btn-muted" href="reservations.html">Reservations</a>
               </div>
             </div>
-            <div class="ops-hero-panel">
-              <div class="ops-badge-grid">
+            <div class="ops-hero-panel attendant-hero-panel">
+              <div class="ops-badge-grid attendant-badge-grid">
                 <div class="ops-badge">
-                  <span>Shift mode</span>
-                  <strong>Live gate control</strong>
+                  <span>Default desk</span>
+                  <strong>Entry first</strong>
                 </div>
                 <div class="ops-badge">
-                  <span>Priority</span>
-                  <strong>Quick turnaround</strong>
+                  <span>Before you act</span>
+                  <strong>Verify plate or reservation</strong>
                 </div>
                 <div class="ops-badge">
-                  <span>Status clock</span>
+                  <span>Shift time</span>
                   <strong id="attendantTime">Checking current shift time...</strong>
                 </div>
               </div>
             </div>
           </section>
 
-          <div id="summaryPanel" class="stat-grid"></div>
+          <section class="card attendant-steps-card" aria-label="Attendant workflow">
+            <div class="driver-card-header">
+              <div>
+                <div class="status">Workflow</div>
+                <h2 class="title">Use the same three steps every time</h2>
+                <p class="subtitle">This keeps first-time attendants from hunting for hidden actions or duplicate controls.</p>
+              </div>
+            </div>
+            <div class="attendant-step-grid">
+              <article class="attendant-step-card">
+                <span class="attendant-step-number">1</span>
+                <div class="attendant-step-copy">
+                  <strong>Verify the driver</strong>
+                  <p>Check the reservation or confirm the plate number before assigning or releasing a slot.</p>
+                </div>
+              </article>
+              <article class="attendant-step-card">
+                <span class="attendant-step-number">2</span>
+                <div class="attendant-step-copy">
+                  <strong>Work from the correct desk</strong>
+                  <p>Use the entry desk for arrivals and the exit desk for departures from the same page.</p>
+                </div>
+              </article>
+              <article class="attendant-step-card">
+                <span class="attendant-step-number">3</span>
+                <div class="attendant-step-copy">
+                  <strong>Check payment at exit</strong>
+                  <p>At exit, verify the cash amount received, then let admin confirm the payment record afterward.</p>
+                </div>
+              </article>
+            </div>
+          </section>
 
           <div class="ops-shell-grid attendant-dashboard-grid">
-            <div class="ops-stack attendant-action-stack" id="attendantActionStack" hidden>
-              <section class="card ops-form-card" id="entryCard" hidden>
-                <div class="status">Vehicle Entry Logging</div>
-                <h2 class="title">Record incoming vehicle</h2>
-                <p class="subtitle">Search for a reservation, assign a slot, and confirm entry in one pass.</p>
+            <div class="ops-stack attendant-action-stack" id="attendantActionStack">
+              <div class="attendant-panel-switch" aria-label="Choose desk panel">
+                <button class="btn-primary attendant-panel-toggle" type="button" data-attendant-open="entry" data-attendant-target="entryCard">Entry desk</button>
+                <button class="btn-muted attendant-panel-toggle" type="button" data-attendant-open="exit" data-attendant-target="exitCard">Exit desk</button>
+              </div>
+
+              <section class="card ops-form-card" id="entryCard">
+                <div class="status">Vehicle Entry</div>
+                <h2 class="title">Record an incoming vehicle</h2>
+                <p class="subtitle">Search for a reservation, assign a slot, and confirm arrival from one focused form.</p>
                 <div class="attendant-inline-summary" id="attendantReservationSummary">
                   <div class="title">No reservation loaded yet.</div>
                   <div class="subtitle">Use the entry lookup to surface the driver, slot, and schedule before you confirm arrival.</div>
@@ -87,9 +123,9 @@
                     <input id="entryBookingId" name="booking_id" type="number" />
                   </div>
                   <div class="action-row wrap-row">
-                    <button class="btn-muted" type="button" id="lookupReservationBtn">Check Reservation</button>
-                    <button class="btn-muted" type="button" id="autoAssignSlotBtn">Auto-Assign Slot</button>
-                    <button class="btn-primary" type="submit">Confirm Entry</button>
+                    <button class="btn-muted" type="button" id="lookupReservationBtn">Check reservation</button>
+                    <button class="btn-muted" type="button" id="autoAssignSlotBtn">Auto-assign slot</button>
+                    <button class="btn-primary" type="submit">Confirm entry</button>
                   </div>
                   <div id="entryReservationInfo" class="helper"></div>
                 </form>
@@ -97,12 +133,12 @@
               </section>
 
               <section class="card ops-form-card" id="exitCard" hidden>
-                <div class="status">Vehicle Exit Logging</div>
-                <h2 class="title">Process vehicle exit</h2>
-                <p class="subtitle">Look up the active entry, confirm billing, and release the space quickly.</p>
+                <div class="status">Vehicle Exit</div>
+                <h2 class="title">Process a departing vehicle</h2>
+                <p class="subtitle">Look up the active entry, confirm the amount due, verify cash received, and release the space. Admin confirms the payment record afterward.</p>
                 <div class="attendant-inline-summary" id="attendantExitSummary">
                   <div class="title">No active exit lookup yet.</div>
-                  <div class="subtitle">When you look up a vehicle at exit, the duration, charge, and payment state will appear here.</div>
+                  <div class="subtitle">When you look up a vehicle at exit, the duration, amount due, and payment follow-up state will appear here.</div>
                 </div>
                 <form id="exitForm" class="grid">
                   <div>
@@ -110,8 +146,8 @@
                     <input id="exitVehicle" name="vehicle_number" type="text" placeholder="KBA 123A" required />
                   </div>
                   <div class="action-row wrap-row">
-                    <button class="btn-muted" type="button" id="lookupExitBtn">Lookup Entry</button>
-                    <button class="btn-accent" type="submit">Process Exit</button>
+                    <button class="btn-muted" type="button" id="lookupExitBtn">Lookup entry</button>
+                    <button class="btn-accent" type="submit">Process exit</button>
                   </div>
                   <div id="exitInfo" class="helper"></div>
                 </form>
@@ -124,12 +160,12 @@
                 <div class="driver-card-header">
                   <div>
                     <div class="status">Live Lot Map</div>
-                    <h2 class="title">Real-time occupancy monitor</h2>
-                    <p class="subtitle">Refresh the grid any time to see what can be assigned immediately, then open the desk panel only when needed.</p>
+                    <h2 class="title">Watch slot status before you assign or release</h2>
+                    <p class="subtitle">Use the map first, then move to the entry or exit desk once you know exactly which vehicle you are handling.</p>
                   </div>
                   <button class="btn-muted" id="loadAttendantSlotsBtn" type="button">Refresh map</button>
                 </div>
-                <div class="helper attendant-grid-helper">Tap an available slot tile to prefill it and open the entry panel for faster processing.</div>
+                <div class="helper attendant-grid-helper">Select an available slot tile to prefill the entry desk instantly.</div>
                 <div id="attendantSlotGrid" class="slot-grid ops-slot-grid parking-lot-board"></div>
                 <div class="slot-legend">
                   <div class="legend-item"><span class="legend-dot available"></span>Available</div>
@@ -149,3 +185,5 @@
     <script src="assets/js/app.js"></script>
   </body>
 </html>
+
+

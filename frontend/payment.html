@@ -33,15 +33,15 @@
             <div class="driver-card-header payment-header-tight">
               <div>
                 <div class="status">Payment Module</div>
-                <h1 class="title">Complete your payment</h1>
-                <p class="subtitle">Keep the booking selection, next step, and payment form together in one clear payment page.</p>
+                <h1 class="title">Review your cash payment steps</h1>
+                <p class="subtitle">Review the booking amount, prepare for exit payment, and understand when the payment record will be confirmed.</p>
               </div>
               <a class="btn-muted" href="driver.html">Back to driver dashboard</a>
             </div>
 
             <div id="paymentHoldNotice" class="driver-hold-banner" hidden>
               <strong>Payment hold:</strong>
-              <span id="paymentHoldText">Cash bookings are settled when you leave the lot.</span>
+              <span id="paymentHoldText">Cash bookings are checked at exit and confirmed afterward.</span>
               <strong id="paymentCountdown">Cash payment</strong>
             </div>
 
@@ -51,14 +51,14 @@
                 <div class="subtitle">Once selected, the amount, timing, and payment details update automatically here.</div>
               </section>
               <section class="attendant-inline-summary payment-summary-card" id="paymentNextStepSummary">
-                <div class="title">Cash payment at exit.</div>
-                <div class="subtitle">Review the booking details here, then pay the attendant when you leave the lot.</div>
+                <div class="title">Cash payment is checked at exit.</div>
+                <div class="subtitle">Pay the attendant when leaving the lot. The payment record stays pending until it is confirmed in the system.</div>
               </section>
             </div>
 
             <section class="driver-empty-state driver-payment-empty" id="paymentEmptyState" hidden>
-              <strong>No pending payments right now.</strong>
-              <div>Your unpaid reservations will appear here as soon as you create one from the driver dashboard.</div>
+              <strong>No payment follow-up is needed right now.</strong>
+              <div>Your cash bookings will appear here whenever you need to review the amount due and the next exit step.</div>
               <div class="ops-hero-actions">
                 <a class="btn-primary" href="driver.html#driver-slot-catalog">Find a parking space</a>
                 <a class="btn-muted" href="driver.html#driver-history-section">Review bookings</a>
@@ -67,8 +67,8 @@
 
             <section class="driver-flash-card driver-payment-success" id="paymentSuccessState" hidden>
               <div class="status">Payment Update</div>
-              <h2 class="title" id="paymentSuccessTitle">Payment request sent.</h2>
-              <p class="subtitle" id="paymentSuccessBody">Check your phone to complete the prompt. This panel will keep the next step visible.</p>
+              <h2 class="title" id="paymentSuccessTitle">Payment steps ready.</h2>
+              <p class="subtitle" id="paymentSuccessBody">Use this panel to review what the attendant checks at exit and what admin confirms afterward.</p>
             </section>
 
             <form id="paymentForm" class="grid driver-payment-form">
@@ -89,8 +89,8 @@
                 <label id="paymentCashOption"><input type="radio" name="payment_method" value="cash" checked /> Cash</label>
               </div>
 
-              <div class="helper payment-inline-note" id="paymentMethodNote">Cash payment is active right now. Pay the attendant when you leave the lot.</div>
-              <button class="btn-primary" type="submit">Pay Now</button>
+              <div class="helper payment-inline-note" id="paymentMethodNote">Cash payment is active right now. Pay at exit, then wait for the payment record to be confirmed.</div>
+              <button class="btn-primary" type="submit">Review payment steps</button>
             </form>
             <div id="paymentMessage" class="helper"></div>
           </section>
@@ -103,3 +103,5 @@
     <script src="assets/js/app.js"></script>
   </body>
 </html>
+
+

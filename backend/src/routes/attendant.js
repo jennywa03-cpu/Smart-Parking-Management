@@ -340,7 +340,7 @@ router.post(
           [totalCost, entry.booking_id]
         );
         await connection.query(
-          "UPDATE payments SET status = 'paid', amount = ? WHERE booking_id = ?",
+          "UPDATE payments SET amount = ? WHERE booking_id = ?",
           [totalCost, entry.booking_id]
         );
       }
@@ -366,6 +366,7 @@ router.post(
 );
 
 module.exports = router;
+
 
 
 

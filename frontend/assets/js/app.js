@@ -2487,7 +2487,7 @@ if (page === 'driver') {
    cashOption.disabled = false;
    paymentSelect.value = 'cash';
    if (driverPaymentMethodNote) {
-    driverPaymentMethodNote.textContent = 'Cash payment is active right now. The attendant will collect payment when you leave the lot.';
+    driverPaymentMethodNote.textContent = 'Cash payment is active right now. Pay at exit, then wait for the payment record to be confirmed.';
    }
    return;
   }
@@ -2659,7 +2659,7 @@ if (page === 'driver') {
    const bookingStatus = String(booking.booking_status || '').toLowerCase();
    const paymentStatus = String(booking.payment_status || '').toLowerCase();
    const paymentMethod = String(booking.payment_method || '').toLowerCase();
-   return bookingStatus !== 'cancelled' && bookingStatus !== 'completed' && paymentStatus !== 'paid' && paymentMethod === 'cash';
+   return bookingStatus !== 'cancelled' && paymentStatus !== 'paid' && paymentMethod === 'cash';
   });
 
   if (heroPendingEl) {
@@ -2669,8 +2669,8 @@ if (page === 'driver') {
   if (!pendingSummaryEl || !pendingDetailEl) return;
 
   if (!pendingCashBookings.length) {
-   pendingSummaryEl.textContent = 'No unpaid cash bookings right now.';
-   pendingDetailEl.textContent = 'If you leave with an unpaid booking, it will appear here until the attendant records the cash payment.';
+   pendingSummaryEl.textContent = 'No cash bookings are waiting for confirmation right now.';
+   pendingDetailEl.textContent = 'Any cash booking that still needs admin confirmation will appear here.';
    return;
   }
 
@@ -2682,8 +2682,11 @@ if (page === 'driver') {
     return aTime - bTime;
    })[0];
 
-  pendingSummaryEl.textContent = `${pendingCashBookings.length} cash booking${pendingCashBookings.length === 1 ? '' : 's'} still need to be settled on exit.`;
-  pendingDetailEl.textContent = `The next unpaid booking is for slot ${nextPending?.booking?.slot_number || '-'}. Settle it with the attendant before leaving.`;
+  const nextStatus = String(nextPending?.booking?.booking_status || '').toLowerCase();
+  pendingSummaryEl.textContent = `${pendingCashBookings.length} cash booking${pendingCashBookings.length === 1 ? '' : 's'} still waiting for payment confirmation.`;
+  pendingDetailEl.textContent = nextStatus === 'completed'
+   ? `Cash for slot ${nextPending?.booking?.slot_number || '-'} was already checked at exit and is now waiting for admin confirmation.`
+   : `The next cash booking is for slot ${nextPending?.booking?.slot_number || '-'}. Pay at exit, then wait for the payment record to be confirmed.`;
  };
 
  const updateEstimatePreview = () => {
@@ -2856,6 +2859,10 @@ if (page === 'driver') {
   const bookingStatus = String(booking.booking_status || 'pending').toLowerCase();
   const paymentStatus = String(booking.payment_status || 'pending').toLowerCase();
   const paymentMethod = String(booking.payment_method || 'cash').replace(/_/g, ' ');
+  const paymentDisplayStatus =
+   paymentMethod === 'cash' && paymentStatus !== 'paid'
+    ? 'awaiting confirmation'
+    : paymentStatus;
   const canPay = paymentStatus !== 'paid' && paymentMethod === 'cash';
   const canOpen = Boolean(booking?.booking_id);
 
@@ -2923,7 +2930,7 @@ if (page === 'driver') {
   const paymentBadge = document.createElement('span');
   paymentBadge.className = 'driver-history-badge';
   paymentBadge.dataset.state = paymentStatus;
-  paymentBadge.textContent = paymentStatus;
+  paymentBadge.textContent = paymentDisplayStatus;
 
   badgeRow.appendChild(bookingBadge);
   badgeRow.appendChild(paymentBadge);
@@ -2934,7 +2941,7 @@ if (page === 'driver') {
 
   const paymentLine = document.createElement('div');
   paymentLine.className = 'driver-history-line';
-  paymentLine.textContent = `Payment: ${paymentStatus} via ${paymentMethod}`;
+  paymentLine.textContent = `Payment: ${paymentDisplayStatus} via ${paymentMethod}`;
 
   const refLine = document.createElement('div');
   refLine.className = 'driver-history-line';
@@ -3199,7 +3206,7 @@ if (page === 'driver') {
    const bookingSuccessMessage =
     payload.payment_method === 'mobile_money'
      ? `Booking created. Complete payment within ${Math.max(1, Math.round(getPaymentHoldSeconds() / 60))} minute(s) or the slot will be released automatically.`
-     : 'Booking confirmed. Arrive within your selected time and pay the attendant in cash when leaving.';
+     : 'Booking confirmed. Arrive within your selected time, pay cash at exit, and wait for the payment record to be confirmed.';
    setMessage('bookingMessage', bookingSuccessMessage);
    if (bookingForm?.reset) {
     bookingForm.reset();
@@ -3224,7 +3231,7 @@ if (page === 'driver') {
 
    showDriverFlash({
     title: 'Booking confirmed.',
-    body: `Slot ${bookingSnapshot.slotNumber} is confirmed for ${bookingSnapshot.window}. Total ${bookingSnapshot.total}. Pay the attendant in cash when you leave.`,
+    body: `Slot ${bookingSnapshot.slotNumber} is confirmed for ${bookingSnapshot.window}. Total ${bookingSnapshot.total}. Pay cash at exit, then wait for the payment record to be confirmed.`,
     primaryHref: '#driver-history-section',
     primaryLabel: 'Review booking',
     secondaryHref: '#driver-slot-catalog',
@@ -3296,14 +3303,14 @@ if (page === 'payment') {
  const updateSubmitButton = (booking = selectedBooking) => {
   if (!payNowBtn) return;
   if (!booking) {
-   payNowBtn.textContent = 'Pay Now';
+   payNowBtn.textContent = 'Review payment steps';
    payNowBtn.disabled = true;
    return;
   }
 
   const bookingMethod = String(booking.payment_method || '').toLowerCase();
   if (bookingMethod === 'cash' || paymentForm?.payment_method?.value === 'cash') {
-   payNowBtn.textContent = 'Record cash for exit';
+   payNowBtn.textContent = 'Review exit payment steps';
    payNowBtn.disabled = false;
    return;
   }
@@ -3337,10 +3344,13 @@ if (page === 'payment') {
   );
 
   if (String(booking.payment_method || '').toLowerCase() === 'cash') {
+   const cashAwaitingConfirmation = String(booking.booking_status || '').toLowerCase() === 'completed' && String(booking.payment_status || '').toLowerCase() !== 'paid';
    setSummaryCardCopy(
     paymentNextStepSummary,
-    'Pay the attendant on exit.',
-    'This booking is cash-based, so the gate team will complete settlement when you leave the lot.'
+    cashAwaitingConfirmation ? 'Cash is awaiting confirmation.' : 'Cash is checked at exit.',
+    cashAwaitingConfirmation
+     ? 'Cash was already checked at exit. Admin still needs to confirm the payment record.'
+     : 'Pay the attendant when leaving the lot. The payment record stays pending until it is confirmed in the system.'
    );
    return;
   }
@@ -3389,7 +3399,7 @@ if (page === 'payment') {
    if (mobileLabel) mobileLabel.remove();
    if (mobileFields) mobileFields.remove();
    if (paymentMethodNote) {
-    paymentMethodNote.textContent = 'Cash payment is active right now. Pay the attendant when you leave the lot.';
+    paymentMethodNote.textContent = 'Cash payment is active right now. Pay at exit, then wait for the payment record to be confirmed.';
    }
    updateSubmitButton(booking);
    return;
@@ -3511,8 +3521,9 @@ if (page === 'payment') {
     .filter((booking) => {
      const bookingStatus = (booking.booking_status || '').toLowerCase();
      const paymentStatus = (booking.payment_status || '').toLowerCase();
-     if (bookingStatus === 'cancelled' || bookingStatus === 'completed') return false;
+     if (bookingStatus === 'cancelled') return false;
      if (paymentStatus === 'paid') return false;
+     if (bookingStatus === 'completed' && String(booking.payment_method || '').toLowerCase() !== 'cash') return false;
      return true;
     })
     .sort(compareBookings);
@@ -3521,7 +3532,7 @@ if (page === 'payment') {
    bookingSelect.innerHTML = '<option value="">Select booking</option>';
 
    if (!bookingCache.length) {
-    bookingSelect.innerHTML = '<option value="">No pending payments</option>';
+    bookingSelect.innerHTML = '<option value="">No payment follow-up needed</option>'; 
     applySelection(null);
     updateEmptyState(true);
     return;
@@ -3530,7 +3541,12 @@ if (page === 'payment') {
    updateEmptyState(false);
 
    bookingCache.forEach((booking) => {
-    const statusLabel = booking.payment_status ? booking.payment_status : 'pending';
+    const statusLabel =
+     String(booking.payment_method || '').toLowerCase() === 'cash' &&
+     String(booking.booking_status || '').toLowerCase() === 'completed' &&
+     String(booking.payment_status || '').toLowerCase() !== 'paid'
+      ? 'awaiting confirmation'
+      : booking.payment_status || 'pending';
     const option = document.createElement('option');
     option.value = booking.booking_id;
     option.textContent = `#${booking.booking_id} - Slot ${booking.slot_number} (${statusLabel})`;
@@ -3589,7 +3605,7 @@ if (page === 'payment') {
   const paymentMethod = paymentForm.payment_method.value;
 
   if (!bookingId) {
-   setMessage('paymentMessage', 'Select a booking to pay for.', true);
+   setMessage('paymentMessage', 'Select a booking to review.', true);
    return;
   }
 
@@ -3601,16 +3617,23 @@ if (page === 'payment') {
   clearSuccessState();
 
   if (selectedBooking?.payment_method === 'cash' || paymentMethod === 'cash') {
+   const cashAwaitingConfirmation = String(selectedBooking?.booking_status || '').toLowerCase() === 'completed' && String(selectedBooking?.payment_status || '').toLowerCase() !== 'paid';
    renderSuccessState(
-    'Cash payment noted.',
-    'Pay the attendant on exit to complete this booking and release the space when you leave.'
+    cashAwaitingConfirmation ? 'Awaiting payment confirmation.' : 'Cash payment steps ready.',
+    cashAwaitingConfirmation
+     ? 'Cash was already checked at exit. Admin still needs to confirm the payment record.'
+     : 'Pay the attendant on exit. The payment record stays pending until it is confirmed in the system.'
    );
    setSummaryCardCopy(
     paymentNextStepSummary,
-    'Present this booking at exit.',
-    'The gate team will capture the cash settlement when you leave the lot.'
+    cashAwaitingConfirmation ? 'Confirmation is still pending.' : 'Show this booking at exit.',
+    cashAwaitingConfirmation
+     ? 'The attendant already checked the cash amount at exit. Admin still needs to confirm the payment record.'
+     : 'The attendant verifies the cash amount at exit, then admin confirms the payment record.'
    );
-   setMessage('paymentMessage', 'Cash payment noted. Please pay the attendant on exit.');
+   setMessage('paymentMessage', cashAwaitingConfirmation
+    ? 'Cash was already checked at exit. Admin confirmation is still pending.'
+    : 'Pay the attendant on exit. The payment record will stay pending until it is confirmed.');
    return;
   }
 
@@ -3651,7 +3674,7 @@ if (page === 'payment') {
  if (paymentFlash) {
   renderSuccessState(
    paymentFlash.title || 'Booking created.',
-   paymentFlash.body || 'Your booking is ready. Pay the attendant in cash when you leave the lot.'
+   paymentFlash.body || 'Your booking is ready. Pay cash at exit and wait for the payment record to be confirmed afterward.'
   );
  }
 
@@ -3679,6 +3702,15 @@ if (page === 'attendant') {
 
  let slotsCache = [];
 
+ const formatAttendantPaymentState = (status, method = 'cash') => {
+  const normalizedStatus = String(status || 'pending').toLowerCase();
+  const normalizedMethod = String(method || 'cash').toLowerCase();
+  if (normalizedMethod === 'cash' && normalizedStatus !== 'paid') {
+   return 'Awaiting admin confirmation';
+  }
+  return formatLabel(normalizedStatus || 'pending');
+ };
+
  const syncAttendantActionStack = () => {
   const hasVisibleCard = Boolean(
    (entryCard && !entryCard.hidden) || (exitCard && !exitCard.hidden)
@@ -3686,17 +3718,34 @@ if (page === 'attendant') {
   toggleHidden(actionStack, !hasVisibleCard);
  };
 
- const openAttendantPanel = (panel, targetId = '') => {
+ const updateAttendantTriggerState = (panel) => {
+  attendantOpenTriggers.forEach((trigger) => {
+   const triggerPanel = trigger.dataset.attendantOpen;
+   if (!triggerPanel || (triggerPanel !== 'entry' && triggerPanel !== 'exit')) return;
+   const isActive = triggerPanel === panel;
+   trigger.classList.toggle('is-panel-active', isActive);
+   if (trigger.classList.contains('btn-primary') || trigger.classList.contains('btn-muted')) {
+    trigger.classList.toggle('btn-primary', isActive);
+    trigger.classList.toggle('btn-muted', !isActive);
+   }
+  });
+ };
+
+ const openAttendantPanel = (panel, targetId = '', options = {}) => {
+  const { scroll = true } = options;
   const showEntry = panel === 'entry';
   const showExit = panel === 'exit';
   toggleHidden(entryCard, !showEntry);
   toggleHidden(exitCard, !showExit);
   syncAttendantActionStack();
+  updateAttendantTriggerState(panel);
 
   const target =
    (targetId ? document.getElementById(targetId) : null) ||
    (showEntry ? entryCard : exitCard);
-  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (scroll) {
+   target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
  };
 
  const bindAttendantOpenTrigger = (trigger) => {
@@ -3745,14 +3794,14 @@ if (page === 'attendant') {
    setSummaryCardCopy(
     exitSummary,
     `${counts.occupied} occupied bay(s) currently active.`,
-    'Look up the vehicle at exit to confirm duration, payment status, and release the correct slot.'
+    'Look up the vehicle at exit to confirm duration, amount due, and whether the payment still needs confirmation.'
    );
    return;
   }
   setSummaryCardCopy(
    exitSummary,
-   'No active exit lookup yet.',
-   'When you look up a vehicle at exit, the duration, charge, and payment state will appear here.'
+   'No exit lookup yet.',
+   'When you look up a vehicle at exit, the duration, amount due, and payment follow-up state will appear here.'
   );
  };
 
@@ -3842,13 +3891,14 @@ if (page === 'attendant') {
  };
 
  const renderExitLookup = (entry) => {
+  const paymentState = formatAttendantPaymentState(entry.payment_status, entry.payment_method);
   if (exitInfo) {
-   exitInfo.innerHTML = `Entry #${entry.entry_id} | Slot ${escapeHtml(entry.slot_number || '-')} | ${entry.duration_hours} hour(s) | Estimated total ${formatCurrency(entry.estimated_total)} | Payment ${formatLabel(entry.payment_status || 'pending')}`;
+   exitInfo.innerHTML = `Entry #${entry.entry_id} | Slot ${escapeHtml(entry.slot_number || '-')} | ${entry.duration_hours} hour(s) | Estimated total ${formatCurrency(entry.estimated_total)} | Payment ${paymentState}`;
   }
   setSummaryCardCopy(
    exitSummary,
    `${entry.vehicle_number || 'Vehicle'} is ready for exit.`,
-   `Slot ${entry.slot_number || '-'} | ${entry.duration_hours} hour(s) | ${formatCurrency(entry.estimated_total)} | ${formatLabel(entry.payment_status || 'pending')}`
+   `Slot ${entry.slot_number || '-'} | ${entry.duration_hours} hour(s) | ${formatCurrency(entry.estimated_total)} | ${paymentState}`
   );
  };
 
@@ -3890,7 +3940,7 @@ if (page === 'attendant') {
    openAttendantPanel('exit', 'exitCard');
    const entry = await api(`/api/attendant/entries/active?vehicle_number=${encodeURIComponent(vehicleNumber)}`);
    renderExitLookup(entry);
-   setMessage('exitMessage', 'Active entry found. Review details before processing exit.');
+   setMessage('exitMessage', 'Active entry found. Verify the amount due and any cash received before processing exit.');
   } catch (err) {
    if (exitInfo) exitInfo.textContent = '';
    setSummaryCardCopy(
@@ -3954,7 +4004,7 @@ if (page === 'attendant') {
     method: 'POST',
     body: JSON.stringify(payload),
    });
-   setMessage('exitMessage', `Exit processed. Total: ${formatCurrency(data.total_cost)}`);
+   setMessage('exitMessage', `Exit processed. Total due: ${formatCurrency(data.total_cost)}. Admin confirmation is still required.`);
    if (exitInfo) {
     exitInfo.innerHTML = `Exit complete | Slot ${escapeHtml(data.slot_number || '-')} released | Total ${formatCurrency(data.total_cost)}`;
    }
@@ -3963,7 +4013,7 @@ if (page === 'attendant') {
    setSummaryCardCopy(
     exitSummary,
     `${payload.vehicle_number} exited successfully.`,
-    `Collected ${formatCurrency(data.total_cost)} and released Slot ${data.slot_number || '-'}.`
+    `Recorded ${formatCurrency(data.total_cost)} for exit and released Slot ${data.slot_number || '-'}. Admin still needs to confirm the payment record.`
    );
   } catch (err) {
    setMessage('exitMessage', err.message, true);
@@ -3971,7 +4021,7 @@ if (page === 'attendant') {
  });
 
  attendantOpenTriggers.forEach(bindAttendantOpenTrigger);
- syncAttendantActionStack();
+ openAttendantPanel('entry', 'entryCard', { scroll: false });
  updateTimeLabel();
  loadSlots();
  setInterval(updateTimeLabel, 60000);
@@ -5120,4 +5170,6 @@ function sanitizeMessage(message) {
  }
  return text;
 }
+
+
 
