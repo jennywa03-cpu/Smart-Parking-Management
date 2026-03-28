@@ -3697,7 +3697,6 @@ if (page === 'attendant') {
  const exitSummary = document.getElementById('attendantExitSummary');
  const entryCard = document.getElementById('entryCard');
  const exitCard = document.getElementById('exitCard');
- const actionStack = document.getElementById('attendantActionStack');
  const attendantOpenTriggers = Array.from(document.querySelectorAll('[data-attendant-open]'));
 
  let slotsCache = [];
@@ -3709,13 +3708,6 @@ if (page === 'attendant') {
    return 'Awaiting admin confirmation';
   }
   return formatLabel(normalizedStatus || 'pending');
- };
-
- const syncAttendantActionStack = () => {
-  const hasVisibleCard = Boolean(
-   (entryCard && !entryCard.hidden) || (exitCard && !exitCard.hidden)
-  );
-  toggleHidden(actionStack, !hasVisibleCard);
  };
 
  const updateAttendantTriggerState = (panel) => {
@@ -3733,16 +3725,11 @@ if (page === 'attendant') {
 
  const openAttendantPanel = (panel, targetId = '', options = {}) => {
   const { scroll = true } = options;
-  const showEntry = panel === 'entry';
-  const showExit = panel === 'exit';
-  toggleHidden(entryCard, !showEntry);
-  toggleHidden(exitCard, !showExit);
-  syncAttendantActionStack();
   updateAttendantTriggerState(panel);
 
   const target =
    (targetId ? document.getElementById(targetId) : null) ||
-   (showEntry ? entryCard : exitCard);
+   (panel === 'exit' ? exitCard : entryCard);
   if (scroll) {
    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

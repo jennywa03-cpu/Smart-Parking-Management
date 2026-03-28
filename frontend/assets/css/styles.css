@@ -8055,6 +8055,36 @@ body[data-page='attendant'] .attendant-panel-toggle.is-panel-active {
   box-shadow: 0 16px 30px rgba(18, 52, 58, 0.14);
 }
 
+body[data-page='attendant'] .attendant-operations-card {
+  gap: 24px;
+}
+
+body[data-page='attendant'] .attendant-desk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+body[data-page='attendant'] .attendant-desk-lane {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  min-width: 0;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(18, 52, 58, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
+}
+
+body[data-page='attendant'] .attendant-desk-lane > .title {
+  margin-bottom: 0;
+}
+
+body[data-page='attendant'] .attendant-desk-lane > .subtitle {
+  margin-top: -8px;
+}
+
 body[data-page='attendant'] .attendant-hero-panel .ops-badge strong {
   line-height: 1.5;
 }
@@ -8070,6 +8100,10 @@ body[data-page='attendant'] .attendant-hero-panel .ops-badge strong {
     grid-template-columns: 1fr;
   }
 
+  body[data-page='attendant'] .attendant-desk-grid {
+    grid-template-columns: 1fr;
+  }
+
   body[data-page='attendant'] .attendant-step-number {
     width: 32px;
     height: 32px;
@@ -8079,3 +8113,4 @@ body[data-page='attendant'] .attendant-hero-panel .ops-badge strong {
     grid-template-columns: 1fr;
   }
 }
+
