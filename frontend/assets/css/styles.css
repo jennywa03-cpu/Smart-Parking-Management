@@ -7853,3 +7853,133 @@ body[data-page='profile'] .input-wrap > input[type='text'] {
 .app-body .grid {
   min-width: 0;
 }
+
+/* Driver page cleanup: simpler first-time flow */
+body[data-page='driver'] .driver-hero-panel-note {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body[data-page='driver'] .driver-hero-panel-note strong {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #eef7f8;
+}
+
+body[data-page='driver'] .driver-hero-panel-note p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(238, 247, 248, 0.78);
+}
+
+body[data-page='driver'] .driver-steps-card {
+  border-radius: 24px;
+  border: 1px solid rgba(21, 51, 58, 0.08);
+  box-shadow: 0 18px 34px rgba(17, 41, 48, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.98));
+}
+
+body[data-page='driver'] .driver-step-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+body[data-page='driver'] .driver-step-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid #dfe8eb;
+  background: #f8fbfb;
+}
+
+body[data-page='driver'] .driver-step-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #12343a;
+  box-shadow: 0 10px 20px rgba(18, 52, 58, 0.18);
+}
+
+body[data-page='driver'] .driver-step-copy {
+  min-width: 0;
+}
+
+body[data-page='driver'] .driver-step-copy strong {
+  display: block;
+  color: #12343a;
+  font-size: 15px;
+}
+
+body[data-page='driver'] .driver-step-copy p {
+  margin: 6px 0 0;
+  color: #60757b;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+body[data-page='driver'] .driver-workspace {
+  align-items: start;
+}
+
+body[data-page='driver'] .driver-booking-card {
+  position: sticky;
+  top: 88px;
+}
+
+body[data-page='driver'] .driver-estimate-row-single {
+  grid-template-columns: 1fr;
+}
+
+body[data-page='driver'] .driver-estimate-row-single .driver-estimate-card {
+  text-align: left;
+}
+
+body[data-page='driver'] .driver-estimate-card small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #678086;
+}
+
+@media (max-width: 1180px) {
+  body[data-page='driver'] .driver-step-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page='driver'] .driver-booking-card {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page='driver'] .driver-step-card {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page='driver'] .driver-step-number {
+    width: 32px;
+    height: 32px;
+  }
+
+  body[data-page='driver'] .driver-hero-panel-note {
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+}

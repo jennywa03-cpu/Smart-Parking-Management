@@ -21,7 +21,7 @@
       </aside>
 
       <section class="main-panel">
-                <header class="topbar">
+        <header class="topbar">
           <div class="topbar-left">
             <button class="menu-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">&#9776;</button>
           </div>
@@ -32,23 +32,18 @@
           <section class="card driver-hero">
             <div class="driver-hero-copy">
               <div class="status">Driver Dashboard</div>
-              <h2 class="driver-hero-title">Reserve the right space before you arrive.</h2>
+              <h2 class="driver-hero-title">Choose a space, set your time, and arrive ready.</h2>
               <p class="driver-hero-text">
-                Live availability, cash payment on exit, and a booking flow built for daily parking.
+                Start with an available slot, confirm your parking window, and pay the attendant in cash when you leave.
               </p>
-              <div class="driver-feature-list">
-                <span class="driver-feature-pill">Live availability</span>
-                <span class="driver-feature-pill">Cash payment on exit</span>
-                <span class="driver-feature-pill">Quick confirmation</span>
-              </div>
+
               <div class="driver-hero-actions">
                 <a class="btn-primary driver-hero-link" href="#driver-slot-catalog" data-driver-open="workspace" data-driver-target="driver-slot-catalog">Find a space</a>
-                <a class="btn-muted driver-hero-link" href="payment.html">Open payments</a>
                 <a class="btn-muted driver-hero-link" href="#driver-records-panel" data-driver-open="records" data-driver-target="driver-records-panel">My bookings</a>
               </div>
             </div>
             <div class="driver-hero-panel">
-              <div class="driver-hero-label">Welcome back</div>
+              <div class="driver-hero-label">Today at a glance</div>
               <div id="driverGreeting" class="driver-hero-name">Driver</div>
               <p id="driverAvailableHint" class="driver-hero-note">
                 Checking current parking inventory and your booking activity...
@@ -58,20 +53,52 @@
                   <strong id="driverHeroAvailable">0</strong>
                   <span>Spaces open</span>
                 </a>
-                <a class="driver-hero-metric" href="payment.html" aria-label="Open payment details">
+                <a class="driver-hero-metric" href="#driver-records-panel" data-driver-open="records" data-driver-target="driver-records-panel" aria-label="Review unpaid cash bookings">
                   <strong id="driverHeroPending">0</strong>
-                  <span>Pending payment</span>
+                  <span>Cash at exit</span>
                 </a>
                 <a class="driver-hero-metric" href="#driver-records-panel" data-driver-open="records" data-driver-target="driver-records-panel" aria-label="Open booking history">
                   <strong id="driverHeroBookings">0</strong>
-                  <span>Bookings logged</span>
+                  <span>My bookings</span>
                 </a>
               </div>
-              <div class="driver-payment-watch">
-                <span class="driver-payment-watch-label">Pending payment watch</span>
-                <strong id="driverPendingSummary" class="driver-payment-watch-title">Checking payment details...</strong>
-                <p id="driverPendingDetail" class="driver-payment-watch-note">Cash bookings are settled with the attendant when you leave the lot.</p>
+              <div class="driver-hero-panel-note">
+                <strong id="driverPendingSummary">Checking cash payment status...</strong>
+                <p id="driverPendingDetail">Cash bookings are settled with the attendant when you leave the lot.</p>
               </div>
+            </div>
+          </section>
+
+          <section class="card driver-steps-card" aria-label="How booking works">
+            <div class="driver-card-header">
+              <div>
+                <div class="status">How It Works</div>
+                <h2 class="title">Follow one simple booking flow</h2>
+                <p class="subtitle">The page now starts with the same steps every driver should take on first visit.</p>
+              </div>
+            </div>
+            <div class="driver-step-grid">
+              <article class="driver-step-card">
+                <span class="driver-step-number">1</span>
+                <div class="driver-step-copy">
+                  <strong>Choose a space</strong>
+                  <p>Browse the live slot list below and select any available space.</p>
+                </div>
+              </article>
+              <article class="driver-step-card">
+                <span class="driver-step-number">2</span>
+                <div class="driver-step-copy">
+                  <strong>Set your parking time</strong>
+                  <p>Confirm when you want to start and when you plan to leave.</p>
+                </div>
+              </article>
+              <article class="driver-step-card">
+                <span class="driver-step-number">3</span>
+                <div class="driver-step-copy">
+                  <strong>Confirm and park</strong>
+                  <p>Finish the booking and pay the attendant in cash when you exit.</p>
+                </div>
+              </article>
             </div>
           </section>
 
@@ -85,7 +112,7 @@
             </div>
           </section>
 
-          <div class="layout driver-layout driver-workspace" id="driverWorkspace" hidden>
+          <div class="layout driver-layout driver-workspace" id="driverWorkspace">
             <section class="card driver-explorer-card" id="driver-slot-catalog">
               <div class="driver-card-header">
                 <div>
@@ -110,7 +137,7 @@
                 </div>
               </div>
 
-              <div class="driver-card-tip">Click any available slot card to load it into the booking panel instantly.</div>
+              <div class="driver-card-tip">Select any available slot card and the booking panel on the right will update instantly.</div>
               <div id="driverSlotGrid" class="driver-slot-grid parking-lot-board parking-lot-board-driver"></div>
 
               <div class="slot-legend">
@@ -119,21 +146,13 @@
                 <div class="legend-item"><span class="legend-dot occupied"></span>Occupied</div>
                 <div class="legend-item"><span class="legend-dot maintenance"></span>Maintenance</div>
               </div>
-
-              <div class="quick-book driver-quick-book">
-                <label for="quickBookInput">Quick book by slot number</label>
-                <div class="action-row">
-                  <input id="quickBookInput" type="text" placeholder="Enter slot number (e.g. A1)" />
-                  <button class="btn-primary" type="button" id="quickBookBtn">Book Now</button>
-                </div>
-              </div>
             </section>
 
-            <section class="card driver-booking-card" id="driver-booking-panel" hidden>
+            <section class="card driver-booking-card" id="driver-booking-panel">
               <div class="status">Booking Details</div>
-              <h2 class="title">Confirm your booking</h2>
+              <h2 class="title">Reserve your slot</h2>
               <p class="subtitle">
-                Pick a slot, define your parking window, and confirm with the payment method you prefer.
+                Choose a slot on the left, set your parking window, and confirm. Cash is collected when you leave the lot.
               </p>
 
               <div class="driver-selection-card">
@@ -163,7 +182,7 @@
                   <strong id="selectedWindowLabel">Choose your start and end time to preview the session.</strong>
                 </div>
               </div>
-              <div class="driver-selection-hint" id="driverBookingHint">Select an available slot card to begin your booking flow.</div>
+              <div class="driver-selection-hint" id="driverBookingHint">Select an available slot from the list on the left to begin your booking.</div>
 
               <form id="bookingForm" class="grid driver-booking-form">
                 <input id="bookingSlotId" name="slot_id" type="hidden" />
@@ -186,11 +205,11 @@
                     Cash payment is active right now. The attendant will collect payment when you leave the lot.
                   </div>
                 </div>
-                <div class="driver-estimate-row">
-                  <button class="btn-muted" type="button" id="calculateTotalBtn">Calculate Total</button>
+                <div class="driver-estimate-row driver-estimate-row-single">
                   <div class="driver-estimate-card">
                     <span>Estimated total</span>
                     <strong id="estimatedTotal">KES 0</strong>
+                    <small>Updated automatically as you adjust your booking time.</small>
                   </div>
                 </div>
                 <button class="btn-primary driver-submit-btn" type="submit">Confirm Booking</button>
@@ -199,22 +218,22 @@
             </section>
           </div>
 
-          <section class="card driver-records-card" id="driver-records-panel" hidden>
+          <section class="card driver-records-card" id="driver-records-panel">
             <div class="driver-card-header">
               <div>
-                <div class="status">Bookings Overview</div>
-                <h2 class="title">Current booking and history</h2>
-                <p class="subtitle">Open one place for the active reservation first, then review previous or pending sessions below.</p>
+                <div class="status">My Bookings</div>
+                <h2 class="title">Current and recent activity</h2>
+                <p class="subtitle">Your active parking session appears first, followed by recent bookings and unpaid cash sessions.</p>
               </div>
             </div>
             <div class="driver-records-stack">
               <section class="driver-records-group" id="driver-active-booking-section">
-                <div class="driver-records-kicker">Active Booking</div>
+                <div class="driver-records-kicker">Current session</div>
                 <div id="activeBookingCard" class="history-grid"></div>
               </section>
 
               <section class="driver-records-group" id="driver-history-section">
-                <div class="driver-records-kicker">Booking History</div>
+                <div class="driver-records-kicker">Recent bookings</div>
                 <div id="bookingHistoryCards" class="history-grid"></div>
               </section>
             </div>
@@ -228,3 +247,4 @@
     <script src="assets/js/app.js"></script>
   </body>
 </html>
+

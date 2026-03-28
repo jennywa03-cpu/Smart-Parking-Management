@@ -2470,7 +2470,7 @@ if (page === 'driver') {
  const setGreeting = () => {
   const firstName = getAuth()?.user?.name?.trim()?.split(/\s+/)[0] || 'Driver';
   if (greetingEl) {
-   greetingEl.textContent = `${firstName}, ready to park?`;
+   greetingEl.textContent = `${firstName}, let's get you parked.`;
   }
  };
 
@@ -2669,8 +2669,8 @@ if (page === 'driver') {
   if (!pendingSummaryEl || !pendingDetailEl) return;
 
   if (!pendingCashBookings.length) {
-   pendingSummaryEl.textContent = 'No cash payments waiting at exit.';
-   pendingDetailEl.textContent = 'Any unpaid cash bookings will appear here until the attendant records payment.';
+   pendingSummaryEl.textContent = 'No unpaid cash bookings right now.';
+   pendingDetailEl.textContent = 'If you leave with an unpaid booking, it will appear here until the attendant records the cash payment.';
    return;
   }
 
@@ -2682,8 +2682,8 @@ if (page === 'driver') {
     return aTime - bTime;
    })[0];
 
-  pendingSummaryEl.textContent = `${pendingCashBookings.length} cash booking${pendingCashBookings.length === 1 ? '' : 's'} awaiting exit payment.`;
-  pendingDetailEl.textContent = `Slot ${nextPending?.booking?.slot_number || '-'} will be settled in cash when you leave the lot.`;
+  pendingSummaryEl.textContent = `${pendingCashBookings.length} cash booking${pendingCashBookings.length === 1 ? '' : 's'} still need to be settled on exit.`;
+  pendingDetailEl.textContent = `The next unpaid booking is for slot ${nextPending?.booking?.slot_number || '-'}. Settle it with the attendant before leaving.`;
  };
 
  const updateEstimatePreview = () => {
@@ -2830,18 +2830,13 @@ if (page === 'driver') {
 
   if (bookingHintEl) {
    bookingHintEl.textContent = slot
-    ? `Slot ${slot.slot_number || '-'} in ${slot.location || 'General'} is ready. Set your times, review the estimate, and confirm when ready.`
-    : 'Select an available slot card to begin your booking flow.';
+    ? `Slot ${slot.slot_number || '-'} in ${slot.location || 'General'} is ready. Set your times, review the estimate, and confirm when you are ready.`
+    : 'Start by selecting an available slot from the list on the left.';
   }
 
-  if (slot) {
-   toggleHidden(workspacePanel, false);
-   toggleHidden(bookingPanel, false);
-   syncDriverWorkspaceLayout();
-  } else {
-   toggleHidden(bookingPanel, true);
-   syncDriverWorkspaceLayout();
-  }
+  toggleHidden(workspacePanel, false);
+  toggleHidden(bookingPanel, false);
+  syncDriverWorkspaceLayout();
 
   const hiddenInput = document.getElementById('bookingSlotId');
   if (hiddenInput) hiddenInput.value = slot?.slot_id || '';
@@ -3204,14 +3199,12 @@ if (page === 'driver') {
    const bookingSuccessMessage =
     payload.payment_method === 'mobile_money'
      ? `Booking created. Complete payment within ${Math.max(1, Math.round(getPaymentHoldSeconds() / 60))} minute(s) or the slot will be released automatically.`
-     : 'Booking confirmed.';
+     : 'Booking confirmed. Arrive within your selected time and pay the attendant in cash when leaving.';
    setMessage('bookingMessage', bookingSuccessMessage);
    if (bookingForm?.reset) {
     bookingForm.reset();
    }
    seedBookingWindow();
-   toggleHidden(bookingPanel, true);
-   syncDriverWorkspaceLayout();
    updateSelectedSlot(null);
    loadSlots();
    loadBookings();
@@ -3231,11 +3224,11 @@ if (page === 'driver') {
 
    showDriverFlash({
     title: 'Booking confirmed.',
-    body: `Slot ${bookingSnapshot.slotNumber} is confirmed for ${bookingSnapshot.window}. Total ${bookingSnapshot.total}.`,
+    body: `Slot ${bookingSnapshot.slotNumber} is confirmed for ${bookingSnapshot.window}. Total ${bookingSnapshot.total}. Pay the attendant in cash when you leave.`,
     primaryHref: '#driver-history-section',
     primaryLabel: 'Review booking',
     secondaryHref: '#driver-slot-catalog',
-    secondaryLabel: 'Book another space',
+    secondaryLabel: 'Choose another space',
    });
   } catch (err) {
    setMessage('bookingMessage', err.message, true);
@@ -5127,3 +5120,4 @@ function sanitizeMessage(message) {
  }
  return text;
 }
+
