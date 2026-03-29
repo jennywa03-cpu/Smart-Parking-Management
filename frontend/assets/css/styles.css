@@ -8114,3 +8114,68 @@ body[data-page='attendant'] .attendant-hero-panel .ops-badge strong {
   }
 }
 
+
+/* Card text containment hardening */
+.app-body .card .driver-hero-actions,
+.app-body .card .ops-hero-actions,
+.app-body .card .payment-summary-strip,
+.app-body .card .driver-payment-summary,
+.app-body .card .ops-badge-grid,
+.app-body .card .table-action-group,
+.app-body .card .table-shell,
+.app-body .card .table-cell-stack,
+.app-body .card .attendant-inline-summary,
+.app-body .card .reservation-summary-inline {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-body .card .driver-hero-actions,
+.app-body .card .ops-hero-actions,
+.app-body .card .payment-summary-strip,
+.app-body .card .table-action-group {
+  flex-wrap: wrap;
+}
+
+.app-body .card .driver-hero-actions > *,
+.app-body .card .ops-hero-actions > *,
+.app-body .card .payment-summary-strip > *,
+.app-body .card .table-action-group > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-page='reservations'] .table-shell {
+  overflow-x: hidden;
+}
+
+body[data-page='reservations'] .table-shell .table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+body[data-page='reservations'] .table-shell th,
+body[data-page='reservations'] .table-shell td {
+  white-space: normal;
+  vertical-align: top;
+}
+
+body[data-page='reservations'] .table-shell th:nth-child(1),
+body[data-page='reservations'] .table-shell td:nth-child(1) {
+  width: 72px;
+}
+
+body[data-page='reservations'] .table-shell th:nth-child(4),
+body[data-page='reservations'] .table-shell td:nth-child(4) {
+  width: 118px;
+}
+
+body[data-page='reservations'] .table-shell th:nth-child(5),
+body[data-page='reservations'] .table-shell td:nth-child(5) {
+  width: 126px;
+}
+
+body[data-page='reservations'] .table-action-group {
+  justify-content: flex-start;
+}
