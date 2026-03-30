@@ -2952,7 +2952,7 @@ if (page === 'driver') {
    const deadline = getPendingPaymentDeadline(booking);
    holdLine = document.createElement('div');
    holdLine.className = 'driver-history-line driver-history-hold';
-   holdLine.innerHTML = `Payment hold: <strong data-hold-countdown data-hold-deadline="${deadline ? deadline.toISOString() : ''}">${formatCountdown(getRemainingSeconds(deadline) || 0)}</strong> remaining before auto-release.`;
+   holdLine.innerHTML = `Payment window: <strong data-hold-countdown data-hold-deadline="${deadline ? deadline.toISOString() : ''}">${formatCountdown(getRemainingSeconds(deadline) || 0)}</strong> remaining before auto-release.`;
   }
 
   const actions = document.createElement('div');
@@ -4811,6 +4811,7 @@ if (page === 'admin-payments') {
 
   paymentsCache.forEach((payment) => {
    const row = document.createElement('tr');
+   const canMarkPaid = String(payment.status).toLowerCase() !== 'paid';
    row.className = `table-row-selectable${Number(payment.payment_id) === Number(selectedPaymentId) ? ' is-selected' : ''}`;
    row.innerHTML = `
     <td><span class="table-id-pill">#${payment.payment_id}</span></td>
@@ -4823,7 +4824,7 @@ if (page === 'admin-payments') {
     <td>
      <div class="table-action-group">
       ${renderActionButton('Status', 'neutral', 'update', 'Change the payment status')}
-      ${renderActionButton('Mark Paid', 'success', 'mark-paid', 'Confirm this payment', String(payment.status).toLowerCase() === 'paid')}
+      ${canMarkPaid ? renderActionButton('Mark Paid', 'success', 'mark-paid', 'Confirm this payment') : ''}
       ${renderActionButton('Refund', 'danger', 'refund', 'Mark this payment as refunded', ['refunded', 'failed'].includes(String(payment.status).toLowerCase()))}
      </div>
     </td>
