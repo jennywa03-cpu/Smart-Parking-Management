@@ -89,18 +89,24 @@ router.get('/reservations/lookup', async (req, res, next) => {
     }
     const [rows] = await pool.query(
       `SELECT b.booking_id, b.start_time, b.end_time, b.status,
-              s.slot_id, s.public_slot_id AS slot_code, s.slot_number, s.location,
+              s.slot_id, s.public_slot_id AS slot_code, s.slot_number, s.location, s.status AS slot_status,
               u.name AS driver_name, u.vehicle_number
        FROM bookings b
        JOIN users u ON u.user_id = b.user_id
        JOIN parking_slots s ON s.slot_id = b.slot_id
        WHERE u.vehicle_number = ? AND b.status IN ('pending','confirmed')
-       ORDER BY b.start_time ASC
+       ORDER BY
+         CASE
+           WHEN s.status = 'booked' THEN 0
+           WHEN b.status = 'confirmed' THEN 1
+           ELSE 2
+         END,
+         b.start_time ASC
        LIMIT 1`,
       [vehicleNumber]
     );
     if (!rows.length) {
-      return res.status(404).json({ message: 'No active reservation found' });
+      return res.status(404).json({ message: 'No active booking found' });
     }
     return res.json(rows[0]);
   } catch (err) {
@@ -165,12 +171,12 @@ router.post('/reservations/:id/verify', async (req, res, next) => {
     );
     if (!rows.length) {
       await connection.rollback();
-      return res.status(404).json({ message: 'Reservation not found' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
     const booking = rows[0];
     if (booking.status === 'cancelled') {
       await connection.rollback();
-      return res.status(409).json({ message: 'Reservation cancelled' });
+      return res.status(409).json({ message: 'Booking cancelled' });
     }
     await connection.query(
       "UPDATE bookings SET status = 'confirmed' WHERE booking_id = ?",
@@ -185,7 +191,7 @@ router.post('/reservations/:id/verify', async (req, res, next) => {
       reason: 'Slot secured during attendant verification.',
     });
     await connection.commit();
-    return res.json({ message: 'Reservation verified' });
+    return res.json({ message: 'Booking verified' });
   } catch (err) {
     await connection.rollback();
     return next(err);
@@ -220,12 +226,12 @@ router.post(
         );
         if (!bookingRows.length) {
           await connection.rollback();
-          return res.status(404).json({ message: 'Reservation not found' });
+          return res.status(404).json({ message: 'Booking not found' });
         }
         const booking = bookingRows[0];
         if (['cancelled', 'completed'].includes(booking.status)) {
           await connection.rollback();
-          return res.status(409).json({ message: 'Reservation is not active' });
+          return res.status(409).json({ message: 'Booking is not active' });
         }
         selectedSlotId = booking.slot_id;
       }

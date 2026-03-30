@@ -3762,15 +3762,15 @@ if (page === 'attendant') {
   if (counts.booked) {
    setSummaryCardCopy(
     reservationSummary,
-    `${counts.booked} reserved arrival(s) waiting in the lot.`,
-    `Use Check Reservation to match the driver first. ${counts.available || 0} walk-in slot(s) remain available.`
+    `${counts.booked} booked arrival(s) waiting in the lot.`,
+    `Use Check booking to match the driver first. ${counts.available || 0} walk-in slot(s) remain available.`
    );
    return;
   }
   setSummaryCardCopy(
    reservationSummary,
-   'No reservation loaded yet.',
-   'Use the entry lookup to surface the driver, slot, and schedule before you confirm arrival.'
+   'No booking loaded yet.',
+   'Use Check booking to surface the driver, booked slot, and schedule before you confirm entry.'
   );
  };
 
@@ -3866,14 +3866,14 @@ if (page === 'attendant') {
   }
  };
 
- const renderReservationLookup = (reservation) => {
+ const renderBookingLookup = (booking) => {
   if (entryReservationInfo) {
-   entryReservationInfo.innerHTML = `Reservation #${reservation.booking_id} for ${escapeHtml(reservation.driver_name || '-')} | Slot ${escapeHtml(reservation.slot_number || '-')} | ${formatDateTime(reservation.start_time)} - ${formatDateTime(reservation.end_time)}`;
+   entryReservationInfo.innerHTML = `Booking #${booking.booking_id} for ${escapeHtml(booking.driver_name || '-')} | Slot ${escapeHtml(booking.slot_number || '-')} | ${formatDateTime(booking.start_time)} - ${formatDateTime(booking.end_time)}`;
   }
   setSummaryCardCopy(
    reservationSummary,
-   `Reservation #${reservation.booking_id} is ready for arrival.`,
-   `${reservation.driver_name || reservation.vehicle_number || 'Driver'} | Slot ${reservation.slot_number || '-'} | ${formatDateTime(reservation.start_time)}`
+   `Booking #${booking.booking_id} is ready for entry.`,
+   `${booking.driver_name || booking.vehicle_number || 'Driver'} | Slot ${booking.slot_number || '-'} | ${formatDateTime(booking.start_time)}`
   );
  };
 
@@ -3899,18 +3899,18 @@ if (page === 'attendant') {
   }
   try {
    openAttendantPanel('entry', 'entryCard');
-   const reservation = await api(`/api/attendant/reservations/lookup?vehicle_number=${encodeURIComponent(vehicleNumber)}`);
+   const booking = await api(`/api/attendant/reservations/lookup?vehicle_number=${encodeURIComponent(vehicleNumber)}`);
    if (entryForm?.booking_id) {
-    entryForm.booking_id.value = reservation.booking_id || '';
+    entryForm.booking_id.value = booking.booking_id || '';
    }
-   ensureSlotOption(reservation.slot_id, `${reservation.slot_number} - ${reservation.location || 'Reserved'}`);
-   renderReservationLookup(reservation);
-   setMessage('entryMessage', 'Reservation loaded. You can now confirm entry.');
+   ensureSlotOption(booking.slot_id, `${booking.slot_number} - ${booking.location || 'Booked slot'}`);
+   renderBookingLookup(booking);
+   setMessage('entryMessage', 'Booking loaded. Confirm entry for this booked slot.');
   } catch (err) {
    if (entryReservationInfo) entryReservationInfo.textContent = '';
    setSummaryCardCopy(
     reservationSummary,
-    'No matching reservation found.',
+    'No matching booking found.',
     'If this driver is a walk-in, use auto-assign after confirming the vehicle number at the gate.'
    );
    setMessage('entryMessage', err.message, true);
@@ -3974,7 +3974,7 @@ if (page === 'attendant') {
    setSummaryCardCopy(
     reservationSummary,
     `${payload.vehicle_number} checked in successfully.`,
-    `Entry ${data.entry_id} is active. You can move to the next arrival or verify another reservation.`
+    `Entry ${data.entry_id} is active. You can move to the next arrival or verify another booking.`
    );
   } catch (err) {
    setMessage('entryMessage', err.message, true);

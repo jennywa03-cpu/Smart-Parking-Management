@@ -51,7 +51,7 @@
                 </div>
                 <div class="ops-badge">
                   <span>Before you act</span>
-                  <strong>Verify plate or reservation</strong>
+                  <strong>Verify plate or booking</strong>
                 </div>
                 <div class="ops-badge">
                   <span>Shift time</span>
@@ -76,10 +76,10 @@
                   <section class="attendant-desk-lane" id="entryCard">
                     <div class="status">Vehicle Entry</div>
                     <h2 class="title">Record an incoming vehicle</h2>
-                    <p class="subtitle">Search for a reservation, assign a slot, and confirm arrival from one focused form.</p>
+                    <p class="subtitle">Check the booked slot first, load the matching booking, then confirm entry from one focused form.</p>
                     <div class="attendant-inline-summary" id="attendantReservationSummary">
-                      <div class="title">No reservation loaded yet.</div>
-                      <div class="subtitle">Use the entry lookup to surface the driver, slot, and schedule before you confirm arrival.</div>
+                      <div class="title">No booking loaded yet.</div>
+                      <div class="subtitle">Use Check booking to surface the driver, booked slot, and schedule before you confirm entry.</div>
                     </div>
                     <form id="entryForm" class="grid">
                       <div>
@@ -91,11 +91,11 @@
                         <select id="entrySlotSelect" name="slot_id"></select>
                       </div>
                       <div>
-                        <label for="entryBookingId">Reservation ID (optional)</label>
+                        <label for="entryBookingId">Booking ID (optional)</label>
                         <input id="entryBookingId" name="booking_id" type="number" />
                       </div>
                       <div class="action-row wrap-row">
-                        <button class="btn-muted" type="button" id="lookupReservationBtn">Check reservation</button>
+                        <button class="btn-muted" type="button" id="lookupReservationBtn">Check booking</button>
                         <button class="btn-muted" type="button" id="autoAssignSlotBtn">Auto-assign slot</button>
                         <button class="btn-primary" type="submit">Confirm entry</button>
                       </div>
