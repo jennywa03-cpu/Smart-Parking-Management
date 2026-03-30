@@ -51,53 +51,6 @@ async function getOrCreateWalkInUser(connection, vehicleNumber) {
   return result.insertId;
 }
 
-function formatReservationDateTime(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return String(value || '');
-  }
-  return date.toISOString().replace('T', ' ').slice(0, 16);
-}
-
-function getReservationWindowState(startTime, endTime, databaseWindowState = '') {
-  const normalizedDatabaseWindowState = String(databaseWindowState || '').trim().toLowerCase();
-  if (normalizedDatabaseWindowState === 'too_early') {
-    return { ok: false, reason: 'too_early' };
-  }
-  if (normalizedDatabaseWindowState === 'expired') {
-    return { ok: false, reason: 'expired' };
-  }
-  if (normalizedDatabaseWindowState === 'active') {
-    return { ok: true, reason: 'active' };
-  }
-
-  const startMs = new Date(startTime).getTime();
-  const endMs = new Date(endTime).getTime();
-  const now = Date.now();
-
-  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
-    return { ok: false, reason: 'invalid', startMs, endMs };
-  }
-  if (now < startMs) {
-    return { ok: false, reason: 'too_early', startMs, endMs };
-  }
-  if (now > endMs) {
-    return { ok: false, reason: 'expired', startMs, endMs };
-  }
-  return { ok: true, reason: 'active', startMs, endMs };
-}
-
-function buildReservationWindowMessage(reservation, windowState) {
-  const slotLabel = reservation?.slot_number || '-';
-  if (windowState.reason === 'too_early') {
-    return `Reservation for Slot ${slotLabel} starts at ${formatReservationDateTime(reservation.start_time)} and is not ready for entry yet.`;
-  }
-  if (windowState.reason === 'expired') {
-    return `Reservation for Slot ${slotLabel} ended at ${formatReservationDateTime(reservation.end_time)} and can no longer be used for entry.`;
-  }
-  return 'Reservation timing is invalid for entry.';
-}
-
 router.get('/slots', async (req, res, next) => {
   try {
     await resyncAllSlotStatuses(pool);
@@ -114,25 +67,13 @@ router.get('/reservations', async (req, res, next) => {
   try {
     const [rows] = await pool.query(
       `SELECT b.booking_id, b.start_time, b.end_time, b.status,
-              CASE
-                WHEN NOW() < b.start_time THEN 'too_early'
-                WHEN NOW() > b.end_time THEN 'expired'
-                ELSE 'active'
-              END AS window_state,
               u.name AS driver_name, u.vehicle_number,
               s.slot_number, s.slot_id, s.public_slot_id AS slot_code
        FROM bookings b
        JOIN users u ON u.user_id = b.user_id
        JOIN parking_slots s ON s.slot_id = b.slot_id
        WHERE b.status IN ('pending','confirmed')
-         AND b.end_time >= NOW()
-       ORDER BY
-         CASE
-           WHEN NOW() BETWEEN b.start_time AND b.end_time THEN 0
-           WHEN b.start_time > NOW() THEN 1
-           ELSE 2
-         END,
-         b.start_time ASC`
+       ORDER BY b.start_time ASC`
     );
     return res.json(rows);
   } catch (err) {
@@ -148,38 +89,20 @@ router.get('/reservations/lookup', async (req, res, next) => {
     }
     const [rows] = await pool.query(
       `SELECT b.booking_id, b.start_time, b.end_time, b.status,
-              CASE
-                WHEN NOW() < b.start_time THEN 'too_early'
-                WHEN NOW() > b.end_time THEN 'expired'
-                ELSE 'active'
-              END AS window_state,
               s.slot_id, s.public_slot_id AS slot_code, s.slot_number, s.location,
               u.name AS driver_name, u.vehicle_number
        FROM bookings b
        JOIN users u ON u.user_id = b.user_id
        JOIN parking_slots s ON s.slot_id = b.slot_id
        WHERE u.vehicle_number = ? AND b.status IN ('pending','confirmed')
-         AND b.end_time >= NOW()
-       ORDER BY
-         CASE
-           WHEN NOW() BETWEEN b.start_time AND b.end_time THEN 0
-           WHEN b.start_time > NOW() THEN 1
-           ELSE 2
-         END,
-         b.start_time ASC
+       ORDER BY b.start_time ASC
        LIMIT 1`,
       [vehicleNumber]
     );
     if (!rows.length) {
       return res.status(404).json({ message: 'No active reservation found' });
     }
-
-    const reservation = rows[0];
-    const windowState = getReservationWindowState(reservation.start_time, reservation.end_time, reservation.window_state);
-    if (!windowState.ok) {
-      return res.status(409).json({ message: buildReservationWindowMessage(reservation, windowState) });
-    }
-    return res.json(reservation);
+    return res.json(rows[0]);
   } catch (err) {
     return next(err);
   }
@@ -289,16 +212,9 @@ router.post(
       await connection.beginTransaction();
       if (resolvedBookingId) {
         const [bookingRows] = await connection.query(
-          `SELECT b.booking_id, b.slot_id, b.status, b.start_time, b.end_time,
-                  CASE
-                    WHEN NOW() < b.start_time THEN 'too_early'
-                    WHEN NOW() > b.end_time THEN 'expired'
-                    ELSE 'active'
-                  END AS window_state,
-                  s.slot_number
-           FROM bookings b
-           JOIN parking_slots s ON s.slot_id = b.slot_id
-           WHERE b.booking_id = ?
+          `SELECT booking_id, slot_id, status
+           FROM bookings
+           WHERE booking_id = ?
            FOR UPDATE`,
           [resolvedBookingId]
         );
@@ -310,12 +226,6 @@ router.post(
         if (['cancelled', 'completed'].includes(booking.status)) {
           await connection.rollback();
           return res.status(409).json({ message: 'Reservation is not active' });
-        }
-
-        const windowState = getReservationWindowState(booking.start_time, booking.end_time, booking.window_state);
-        if (!windowState.ok) {
-          await connection.rollback();
-          return res.status(409).json({ message: buildReservationWindowMessage(booking, windowState) });
         }
         selectedSlotId = booking.slot_id;
       }
@@ -390,18 +300,10 @@ router.post(
       const [entryRows] = await connection.query(
         `SELECT ve.entry_id, ve.entry_time, ve.slot_id, ve.booking_id,
                 ps.hourly_rate, ps.slot_number,
-                b.start_time, b.end_time,
-                CASE
-                  WHEN b.booking_id IS NULL THEN NULL
-                  WHEN NOW() < b.start_time THEN 'too_early'
-                  WHEN NOW() > b.end_time THEN 'expired'
-                  ELSE 'active'
-                END AS window_state,
                 p.status AS payment_status, p.payment_method
          FROM vehicle_entries ve
          JOIN parking_slots ps ON ps.slot_id = ve.slot_id
-         LEFT JOIN bookings b ON b.booking_id = ve.booking_id
-         LEFT JOIN payments p ON p.booking_id = b.booking_id
+         LEFT JOIN payments p ON p.booking_id = ve.booking_id
          LEFT JOIN vehicle_exits vx ON vx.entry_id = ve.entry_id
          WHERE ve.vehicle_number = ? AND vx.exit_id IS NULL
          ORDER BY ve.entry_time DESC
@@ -416,15 +318,6 @@ router.post(
       }
 
       const entry = entryRows[0];
-      if (entry.booking_id) {
-        const windowState = getReservationWindowState(entry.start_time, entry.end_time, entry.window_state);
-        if (!windowState.ok && windowState.reason === 'too_early') {
-          await connection.rollback();
-          return res.status(409).json({
-            message: `Reservation for Slot ${entry.slot_number || '-'} has not reached its start time yet. Exit cannot be processed before ${formatReservationDateTime(entry.start_time)}.`
-          });
-        }
-      }
       const entryTime = new Date(entry.entry_time);
       const exitTime = new Date();
       const hours = Math.max(1, Math.ceil((exitTime - entryTime) / (1000 * 60 * 60)));
