@@ -4759,7 +4759,6 @@ if (page === 'admin-payments') {
   const today = formatDateOnly(new Date());
   let totalToday = 0;
   let totalCash = 0;
-  let totalMobile = 0;
   let totalPending = 0;
 
   paymentsCache.forEach((payment) => {
@@ -4769,7 +4768,6 @@ if (page === 'admin-payments') {
    }
    if (payment.status === 'paid') {
     if (payment.payment_method === 'cash') totalCash += Number(payment.amount || 0);
-    if (payment.payment_method === 'mobile_money') totalMobile += Number(payment.amount || 0);
    }
    if (payment.status === 'pending') {
     totalPending += Number(payment.amount || 0);
@@ -4778,12 +4776,10 @@ if (page === 'admin-payments') {
 
   const totalTodayEl = document.getElementById('paymentTotalToday');
   const cashEl = document.getElementById('paymentCashTotal');
-  const mobileEl = document.getElementById('paymentMobileTotal');
   const pendingEl = document.getElementById('paymentPendingTotal');
 
   if (totalTodayEl) totalTodayEl.textContent = formatCurrency(totalToday);
   if (cashEl) cashEl.textContent = formatCurrency(totalCash);
-  if (mobileEl) mobileEl.textContent = formatCurrency(totalMobile);
   if (pendingEl) pendingEl.textContent = formatCurrency(totalPending);
  };
 
